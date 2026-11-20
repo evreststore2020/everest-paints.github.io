@@ -477,3 +477,37 @@ footer.site .legal{border-top:1px solid rgba(255,255,255,.12);margin-top:40px;pa
 
 /* لوحة التحكم منفصلة عن المتجر – مفيش أي زرار ليها هنا */
 .admin-link{display:none!important}
+
+/* ---------- حساب العميل ---------- */
+.acct-btn{position:relative}
+.acct-dot{display:none;position:absolute;top:-2px;inset-inline-end:-4px;width:8px;height:8px;border-radius:50%;background:#2fbf71;box-shadow:0 0 0 2px #fff}
+.acct-btn.in .acct-dot{display:block}
+.amodal{position:fixed;inset:0;z-index:130;background:rgba(0,0,0,.55);display:grid;place-items:center;padding:16px;overflow:auto}
+.amodal[hidden]{display:none}
+.abox{position:relative;background:#fff;color:var(--ink);width:min(560px,100%);padding:30px 28px 26px;max-height:calc(100vh - 32px);overflow:auto;animation:aIn .3s var(--ease)}
+@keyframes aIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.abox h3{font-size:24px;margin:0 0 6px}
+.abox>div>p.muted{font-size:14px;margin:0 0 18px}
+.aclose{position:absolute;top:12px;inset-inline-start:12px;width:36px;height:36px;font-size:16px;color:var(--muted)}
+.aclose:hover{color:var(--ink)}
+.afields{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.req{color:#c8102e;font-weight:700}
+.aopt{border:1px solid var(--line);padding:0 16px;margin:4px 0 14px}
+.aopt[open]{padding-bottom:16px}
+.aopt summary{cursor:pointer;padding:14px 0;font-weight:600;list-style:none;display:flex;justify-content:space-between;align-items:center}
+.aopt summary::-webkit-details-marker{display:none}
+.aopt summary::after{content:"+";font-size:20px;color:var(--muted)}
+.aopt[open] summary::after{content:"−"}
+.aopt summary small{color:var(--muted);font-weight:400;margin-inline-start:6px}
+.achips{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.achips label{cursor:pointer}
+.achips input{position:absolute;opacity:0;pointer-events:none}
+.achips span{display:inline-block;border:1px solid var(--line);padding:6px 12px;font-size:14px;transition:.2s}
+.achips input:checked+span{background:var(--jotun-blue,#003087);border-color:var(--jotun-blue,#003087);color:#fff}
+.achips input:focus-visible+span{outline:2px solid var(--ink)}
+.acheck{display:flex;gap:8px;align-items:center;font-size:14px;margin-top:14px;cursor:pointer}
+.aerr{color:#c8102e;font-size:14px;min-height:20px;margin:0 0 8px}
+.abox .btn-primary{width:100%;background:var(--jotun-blue,#003087)}
+.abox .btn-primary:hover{background:#00205c}
+.aout{display:block;margin:14px auto 0;color:var(--muted);text-decoration:underline;font-size:14px}
+@media (max-width:520px){.afields{grid-template-columns:1fr}.abox{padding:26px 18px 20px}}

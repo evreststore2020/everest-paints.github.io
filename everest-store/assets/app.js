@@ -49,8 +49,15 @@ const pageUrl = p => PAGES && !PAGES.has(p.id) ? `${BASE}product.html?id=${encod
 function logEvent(type, o = {}) {
   if (!SB) return;
   const clip = (v, n) => v == null || v === "" ? null : String(v).trim().slice(0, n);
-  const row = {type, page: clip(location.pathname, 200), name: clip(o.name, 80), phone: clip(o.phone, 20), area: clip(o.area, 160), total: isFinite(+o.total) && o.total !== "" && o.total != null ? +o.total : null, details: clip(o.details, 3000)};
-  SB.insert("orders", row).catch(e => console.warn("order log:", e.message));
+  const cust = type === "signup" || type === "login", me = store.get("everest-customer", null);
+  let det = o.details || "";
+  if (!cust && me && me.email && !det.includes(me.email)) det += (det ? "\n" : "") + "إيميل العميل: " + me.email;
+  const row = {type, page: clip(location.pathname, 200), name: clip(o.name || (me && me.name), 80), phone: clip(o.phone || (me && me.phone), 20), area: clip(o.area, 160), total: isFinite(+o.total) && o.total !== "" && o.total != null ? +o.total : null, details: clip(det, 3000)};
+  /* لو قاعدة البيانات لسه ما اتحدثتش لنوع "تسجيل عميل"، بيتسجل كـ"تواصل" بعلامة واللوحة بتفهمها */
+  SB.insert("orders", row).catch(e => {
+    if (!cust || e.status !== 400) throw e;
+    return SB.insert("orders", Object.assign({}, row, {type: "contact", details: clip((type === "signup" ? "👤 تسجيل عميل" : "🔑 دخول عميل") + "\n" + (row.details || ""), 3000)}));
+  }).catch(e => console.warn("order log:", e.message));
 }
 
 /* ---------- التتبع: Google Analytics 4 و Facebook Pixel ---------- */
@@ -540,4 +547,80 @@ if (PD && $("#pdBuy")) {
   $("#pdAsk").href = wa(`مرحباً، أستفسر عن ${PD.ar} (${PD.en})`);
   draw();
 }
+
+/* ---------- حساب العميل: تسجيل الدخول بالاسم والإيميل (+ بيانات اختيارية) ---------- */
+(function () {
+  const CK = "everest-customer", SEEN = "everest-customer-seen";
+  const CTYPES = ["فرد / صاحب بيت", "مقاول", "مهندس / مصمم ديكور", "شركة / محل"];
+  const CINT = ["دهانات داخلية", "دهانات خارجية", "ديكورات وتأثيرات", "دهانات أخشاب", "أرضيات وصناعي", "عزل"];
+  const CSRC = ["فيسبوك", "إنستجرام", "تيك توك", "جوجل", "واتساب", "صديق / قريب", "عدّيت على المحل"];
+  const cartB = $("#openCart"); if (!cartB) return;
+  let ME = store.get(CK, null);
+  const first = n => String(n || "").trim().split(/\s+/)[0];
+  cartB.insertAdjacentHTML("beforebegin", `<button class="acct-btn" id="acctBtn" type="button"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg><span class="lbl" id="acctLbl"></span><i class="acct-dot"></i></button>`);
+  document.body.insertAdjacentHTML("beforeend", `<div class="amodal" id="aModal" hidden><div class="abox" role="dialog" aria-modal="true" aria-labelledby="aTitle"><button class="aclose" id="aClose" type="button" aria-label="إغلاق">✕</button><div id="aBody"></div></div></div>`);
+  const btn = $("#acctBtn"), modal = $("#aModal");
+  const paint = () => { $("#acctLbl").textContent = ME ? "أهلاً " + first(ME.name) : "تسجيل الدخول"; btn.title = ME ? "حسابي: " + ME.name : "تسجيل الدخول"; btn.setAttribute("aria-label", btn.title); btn.classList.toggle("in", !!ME) };
+  const opt = (list, v) => `<option value="">— اختار —</option>` + list.map(x => `<option ${x === v ? "selected" : ""}>${esc(x)}</option>`).join("");
+  const form = () => {
+    const m = ME || {};
+    $("#aBody").innerHTML = `
+      <h3 id="aTitle">${ME ? "بياناتي" : "تسجيل الدخول"}</h3>
+      <p class="muted">${ME ? "تقدر تعدّل بياناتك في أي وقت." : "سجّل باسمك وإيميلك عشان نخدمك أسرع ونبعتلك العروض – ومش هتحتاج تكتب بياناتك تاني مع كل طلب."}</p>
+      <form id="aForm" novalidate>
+        <div class="afields">
+          <div class="field"><label>الاسم <b class="req">*</b></label><input name="name" required maxlength="80" autocomplete="name" value="${esc(m.name || "")}"></div>
+          <div class="field"><label>الإيميل <b class="req">*</b></label><input name="email" type="email" required maxlength="120" dir="ltr" autocomplete="email" value="${esc(m.email || "")}"></div>
+        </div>
+        <details class="aopt" ${ME && (m.phone || m.area || m.type || (m.interests || []).length || m.source) ? "open" : ""}>
+          <summary><span>بيانات اختيارية <small>(لو حابب)</small></span></summary>
+          <div class="afields">
+            <div class="field"><label>رقم الموبايل</label><input name="phone" type="tel" maxlength="20" dir="ltr" autocomplete="tel" value="${esc(m.phone || "")}"></div>
+            <div class="field"><label>المنطقة / العنوان</label><input name="area" maxlength="160" autocomplete="address-level2" value="${esc(m.area || "")}"></div>
+            <div class="field"><label>إنت مين؟</label><select name="type">${opt(CTYPES, m.type)}</select></div>
+            <div class="field"><label>عرفتنا منين؟</label><select name="source">${opt(CSRC, m.source)}</select></div>
+          </div>
+          <div class="field"><label>مهتم بإيه؟ <small>(اختار أكتر من حاجة)</small></label>
+            <div class="achips">${CINT.map(x => `<label><input type="checkbox" name="interests" value="${esc(x)}" ${(m.interests || []).includes(x) ? "checked" : ""}><span>${esc(x)}</span></label>`).join("")}</div></div>
+          <label class="acheck"><input type="checkbox" name="offers" ${m.offers !== false ? "checked" : ""}> ابعتولي العروض والخصومات</label>
+        </details>
+        <p class="aerr" id="aErr" role="alert"></p>
+        <button class="btn btn-primary" type="submit">${ME ? "حفظ البيانات" : "دخول"}</button>
+        ${ME ? `<button class="aout" id="aOut" type="button">تسجيل الخروج</button>` : ""}
+      </form>`;
+    $("#aForm").addEventListener("submit", submit);
+    const out = $("#aOut"); if (out) out.onclick = () => { ME = null; try { localStorage.removeItem(CK); localStorage.removeItem(SEEN) } catch (e) {} paint(); close(); toast("تم تسجيل الخروج") };
+  };
+  function submit(e) {
+    e.preventDefault();
+    const f = new FormData(e.target), g = k => String(f.get(k) || "").trim(), err = t => { $("#aErr").textContent = t; return false };
+    const name = g("name"), email = g("email").toLowerCase();
+    if (name.length < 2) return err("من فضلك اكتب اسمك");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return err("من فضلك اكتب إيميل صحيح");
+    const isNew = !ME;
+    ME = {name, email, phone: g("phone"), area: g("area"), type: g("type"), source: g("source"), interests: f.getAll("interests"), offers: f.get("offers") === "on", since: (ME && ME.since) || new Date().toISOString()};
+    store.set(CK, ME); store.set(SEEN, Date.now());
+    logEvent("signup", {name, phone: ME.phone, area: ME.area, details: [
+      "الإيميل: " + email,
+      ME.type && "نوع العميل: " + ME.type,
+      ME.interests.length && "مهتم بـ: " + ME.interests.join("، "),
+      ME.source && "عرفنا من: " + ME.source,
+      "العروض: " + (ME.offers ? "موافق" : "لا"),
+      !isNew && "(تعديل بيانات)"
+    ].filter(Boolean).join("\n")});
+    track(isNew ? "sign_up" : "login", {method: "email"});
+    paint(); fill(); close(); toast(isNew ? `أهلاً ${first(name)}، تم تسجيلك ✓` : "تم حفظ بياناتك ✓");
+  }
+  /* بنملا خانات الاسم والموبايل في الطلب والحجز تلقائي */
+  const fill = () => { if (!ME) return; for (const [s, v] of [["#oName", ME.name], ["#oPhone", ME.phone], ["#oAddr", ME.area], ["input[name=name]", ME.name], ["input[name=phone]", ME.phone]]) for (const el of document.querySelectorAll(s)) if (!el.closest("#aModal") && !el.value && v) el.value = v };
+  const close = () => { modal.hidden = true; document.body.style.overflow = "" };
+  const open = () => { form(); modal.hidden = false; document.body.style.overflow = "hidden"; setTimeout(() => { const i = $("#aForm input[name=name]"); if (i && !ME) i.focus() }, 50) };
+  btn.onclick = open; $("#aClose").onclick = close;
+  modal.addEventListener("click", e => { if (e.target === modal) close() });
+  addEventListener("keydown", e => { if (e.key === "Escape" && !modal.hidden) close() });
+  window.everestLogin = open;
+  paint(); fill();
+  /* زيارة جديدة لعميل مسجّل → بتظهر في اللوحة (مرة كل 6 ساعات بالكتير) */
+  if (ME && !preview && Date.now() - (+store.get(SEEN, 0) || 0) > 6 * 3600e3) { store.set(SEEN, Date.now()); logEvent("login", {name: ME.name, phone: ME.phone, area: ME.area, details: "الإيميل: " + ME.email}) }
+})();
 })();
