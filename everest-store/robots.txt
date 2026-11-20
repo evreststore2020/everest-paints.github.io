@@ -1,6 +1,2 @@
 User-agent: *
-Allow: /
-Disallow: /product.html
-Disallow: /tools/
-
-Sitemap: https://www.example.com/sitemap.xml
+Disallow: /
