@@ -550,6 +550,27 @@ if (PD && $("#pdBuy")) {
   draw();
 }
 
+/* ---------- تصميم وتطوير: داش تكنولوجي (في آخر الفوتر في كل الصفحات) ---------- */
+{
+  const ft = document.querySelector("footer.site .wrap");
+  if (ft && !document.querySelector(".dash-credit")) ft.insertAdjacentHTML("beforeend", `
+    <div class="dash-credit">
+      <div class="dc-brand">
+        <svg class="dc-mark" viewBox="0 0 64 48" width="44" height="33" aria-hidden="true"><path d="M17 0h12L12 48H0z" fill="#8b74ff"/><path d="M41 0h12L36 48H24z" fill="#ff5a4f"/></svg>
+        <div class="dc-txt">
+          <span class="dc-by">تم التصميم والتطوير بواسطة</span>
+          <span class="dc-name"><b dir="ltr"><i>D</i>a<i>S</i>h</b> داش تكنولوجي</span>
+          <span class="dc-slogan">من الفكرة للإطلاق.. بسرعة <em dir="ltr">Idea to launch. Fast.</em></span>
+        </div>
+      </div>
+      <div class="dc-contact">
+        <a href="tel:+201280639874" dir="ltr"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg>0128 063 9874</a>
+        <a href="tel:+201011213950" dir="ltr"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg>0101 121 3950</a>
+        <a href="mailto:dashtechonlogy@gmail.com" dir="ltr"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>dashtechonlogy@gmail.com</a>
+      </div>
+    </div>`);
+}
+
 /* ---------- حساب العميل: شاشة تسجيل إجبارية قبل فتح المتجر ---------- */
 (function () {
   const CK = "everest-customer", SEEN = "everest-customer-seen";

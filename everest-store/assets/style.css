@@ -526,3 +526,21 @@ html.cust-gate body::before{content:"";position:fixed;inset:0;z-index:125;backgr
 .achips.big span{display:block;text-align:center;padding:11px 4px;font-size:15px;font-weight:600}
 @media (max-width:520px){.achips.big{grid-template-columns:repeat(3,1fr)}}
 .abox{overflow-x:hidden}.achips label{position:relative}
+
+/* ---------- تصميم: داش تكنولوجي ---------- */
+.dash-credit{margin-top:18px;padding:18px 22px;border:1px solid rgba(255,255,255,.1);background:linear-gradient(90deg,rgba(91,63,240,.14),rgba(255,90,79,.08));display:flex;justify-content:space-between;align-items:center;gap:18px 28px;flex-wrap:wrap}
+.dc-brand{display:flex;align-items:center;gap:14px}
+.dc-mark{flex:none}
+.dc-txt{display:flex;flex-direction:column;gap:2px;line-height:1.5}
+.dc-by{font-size:12px;color:#9a9a9a}
+.dc-name{color:#fff;font-size:15px;display:flex;align-items:baseline;gap:8px}
+.dc-name b{font-family:"Courier New",ui-monospace,monospace;font-weight:800;font-size:21px;letter-spacing:.5px}
+.dc-name b i{font-style:normal;color:#8b74ff}
+.dc-slogan{font-size:12px;color:#bdbdbd}
+.dc-slogan em{font-style:normal;color:#8a8a8a;margin-inline-start:6px}
+.dc-contact{display:flex;gap:10px;flex-wrap:wrap}
+.dc-contact a{display:inline-flex;align-items:center;gap:7px;padding:7px 12px;border:1px solid rgba(255,255,255,.14);color:#ddd;font-size:13px;transition:.2s}
+.dc-contact a:hover{border-color:#8b74ff;color:#fff;background:rgba(139,116,255,.12)}
+.dc-contact svg{color:#ff5a4f}
+@media (max-width:640px){.dash-credit{flex-direction:column;align-items:flex-start}.dc-contact a{font-size:12px}}
+footer.site{padding-bottom:96px}
