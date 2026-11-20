@@ -544,3 +544,4 @@ html.cust-gate body::before{content:"";position:fixed;inset:0;z-index:125;backgr
 .dc-contact svg{color:#ff5a4f}
 @media (max-width:640px){.dash-credit{flex-direction:column;align-items:flex-start}.dc-contact a{font-size:12px}}
 footer.site{padding-bottom:96px}
+.achips.big{grid-template-columns:repeat(6,1fr)}@media (max-width:520px){.achips.big{grid-template-columns:repeat(3,1fr)}}

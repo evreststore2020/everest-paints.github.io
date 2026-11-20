@@ -11,7 +11,7 @@ const fmt = n => Math.round(n).toLocaleString("ar-EG") + " ج.م";
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const store = { get(k, d) { try { return JSON.parse(localStorage.getItem(k)) ?? d } catch (e) { return d } }, set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)) } catch (e) {} } };
 /* لو الزائر لسه ما سجّلش: المتجر بيبان مقفول من أول لحظة لحد ما شاشة التسجيل تظهر */
-{ const c = store.get("everest-customer", null); if (!(c && c.name && c.email && c.type) && !new URLSearchParams(location.search).has("preview")) document.documentElement.classList.add("cust-gate") }
+{ const c = store.get("everest-customer", null); if (!(c && c.name && c.email && c.type && c.phone && c.area) && !new URLSearchParams(location.search).has("preview")) document.documentElement.classList.add("cust-gate") }
 
 /* ---------- تحميل البيانات ---------- */
 let DATA;
@@ -574,12 +574,12 @@ if (PD && $("#pdBuy")) {
 /* ---------- حساب العميل: شاشة تسجيل إجبارية قبل فتح المتجر ---------- */
 (function () {
   const CK = "everest-customer", SEEN = "everest-customer-seen";
-  const CTYPES = ["عميل", "فني", "مهندس", "مقاول", "تاجر"];
+  const CTYPES = ["عميل", "فني", "مهندس", "مقاول", "تاجر", "شركة"];
   const CINT = ["دهانات داخلية", "دهانات خارجية", "ديكورات وتأثيرات", "دهانات أخشاب", "أرضيات وصناعي", "عزل"];
   const CSRC = ["فيسبوك", "إنستجرام", "تيك توك", "جوجل", "واتساب", "صديق / قريب", "عدّيت على المحل"];
   const cartB = $("#openCart");
   let ME = store.get(CK, null);
-  const ok = () => !!(ME && ME.name && ME.email && ME.type);
+  const ok = () => !!(ME && ME.name && ME.email && ME.type && ME.phone && ME.area);
   const first = n => String(n || "").trim().split(/\s+/)[0];
   if (cartB) cartB.insertAdjacentHTML("beforebegin", `<button class="acct-btn" id="acctBtn" type="button"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg><span class="lbl" id="acctLbl"></span><i class="acct-dot"></i></button>`);
   document.body.insertAdjacentHTML("beforeend", `<div class="amodal" id="aModal" hidden><div class="abox" role="dialog" aria-modal="true" aria-labelledby="aTitle"><button class="aclose" id="aClose" type="button" aria-label="إغلاق">✕</button><div id="aBody"></div></div></div>`);
@@ -598,16 +598,14 @@ if (PD && $("#pdBuy")) {
         <div class="afields">
           <div class="field"><label>الاسم <b class="req">*</b></label><input name="name" required maxlength="80" autocomplete="name" value="${esc(m.name || "")}"></div>
           <div class="field"><label>الإيميل <b class="req">*</b></label><input name="email" type="email" required maxlength="120" dir="ltr" autocomplete="email" value="${esc(m.email || "")}"></div>
+          <div class="field"><label>رقم الموبايل <b class="req">*</b></label><input name="phone" type="tel" required maxlength="20" dir="ltr" inputmode="tel" autocomplete="tel" placeholder="01xxxxxxxxx" value="${esc(m.phone || "")}"></div>
+          <div class="field"><label>المنطقة / العنوان <b class="req">*</b></label><input name="area" required maxlength="160" autocomplete="street-address" placeholder="مثال: المرج – شارع ..." value="${esc(m.area || "")}"></div>
         </div>
         <div class="field atype"><label>إنت مين؟ <b class="req">*</b></label>
           <div class="achips big" role="radiogroup">${CTYPES.map(x => `<label><input type="radio" name="type" value="${esc(x)}" ${m.type === x ? "checked" : ""}><span>${esc(x)}</span></label>`).join("")}</div></div>
-        <details class="aopt" ${edit && (m.phone || m.area || (m.interests || []).length || m.source) ? "open" : ""}>
+        <details class="aopt" ${edit && ((m.interests || []).length || m.source) ? "open" : ""}>
           <summary><span>بيانات اختيارية <small>(لو حابب)</small></span></summary>
-          <div class="afields">
-            <div class="field"><label>رقم الموبايل</label><input name="phone" type="tel" maxlength="20" dir="ltr" autocomplete="tel" value="${esc(m.phone || "")}"></div>
-            <div class="field"><label>المنطقة / العنوان</label><input name="area" maxlength="160" autocomplete="address-level2" value="${esc(m.area || "")}"></div>
-            <div class="field"><label>عرفتنا منين؟</label><select name="source">${opt(CSRC, m.source)}</select></div>
-          </div>
+          <div class="field" style="margin-bottom:14px"><label>عرفتنا منين؟</label><select name="source">${opt(CSRC, m.source)}</select></div>
           <div class="field"><label>مهتم بإيه؟ <small>(اختار أكتر من حاجة)</small></label>
             <div class="achips">${CINT.map(x => `<label><input type="checkbox" name="interests" value="${esc(x)}" ${(m.interests || []).includes(x) ? "checked" : ""}><span>${esc(x)}</span></label>`).join("")}</div></div>
           <label class="acheck"><input type="checkbox" name="offers" ${m.offers !== false ? "checked" : ""}> ابعتولي العروض والخصومات</label>
@@ -622,12 +620,16 @@ if (PD && $("#pdBuy")) {
   function submit(e) {
     e.preventDefault();
     const f = new FormData(e.target), g = k => String(f.get(k) || "").trim(), err = t => { $("#aErr").textContent = t; return false };
-    const name = g("name"), email = g("email").toLowerCase(), type = g("type");
+    const name = g("name"), email = g("email").toLowerCase(), type = g("type"), area = g("area");
+    /* الأرقام العربي (٠١٢) بتتحول لإنجليزي، والمسافات والشُرط بتتشال */
+    const phone = g("phone").replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d)).replace(/[۰-۹]/g, d => "۰۱۲۳۴۵۶۷۸۹".indexOf(d)).replace(/[\s\-()]/g, "");
     if (name.length < 2) return err("من فضلك اكتب اسمك");
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return err("من فضلك اكتب إيميل صحيح");
-    if (!CTYPES.includes(type)) return err("من فضلك اختار: عميل ولا فني ولا مهندس ولا مقاول ولا تاجر");
+    if (!/^(\+?20)?0?1[0125]\d{8}$/.test(phone) && !/^\+?\d{8,15}$/.test(phone)) return err("من فضلك اكتب رقم موبايل صحيح (مثال: 01012345678)");
+    if (area.length < 3) return err("من فضلك اكتب المنطقة أو العنوان");
+    if (!CTYPES.includes(type)) return err("من فضلك اختار إنت مين: " + CTYPES.join(" / "));
     const isNew = !ok();
-    ME = {name, email, type, phone: g("phone"), area: g("area"), source: g("source"), interests: f.getAll("interests"), offers: f.get("offers") === "on", since: (ME && ME.since) || new Date().toISOString()};
+    ME = {name, email, type, phone, area, source: g("source"), interests: f.getAll("interests"), offers: f.get("offers") === "on", since: (ME && ME.since) || new Date().toISOString()};
     store.set(CK, ME); store.set(SEEN, Date.now());
     logEvent("signup", {name, phone: ME.phone, area: ME.area, details: [
       "الإيميل: " + email,
