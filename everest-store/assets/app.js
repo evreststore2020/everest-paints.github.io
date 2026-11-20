@@ -46,6 +46,23 @@ const hasPrice = p => PK(p).some(k => k.p != null) || (!PK(p).length && p.price 
 const findPk = (p, key) => PK(p).find(k => pkKey(k) === key);
 const packPrice = (p, key) => { if (!key) return p.price ?? null; const k = findPk(p, key); return k ? k.p : null };
 const unitLabel = (p, key) => { const k = key && findPk(p, key); return k ? pkLabel(k) : unitWord(p) };
+/* ---------- الدفع: إنستاباي وفودافون كاش ----------
+   المنتجات اللي سعرها ثابت (أبيض / ألوان جاهزة / أي عبوة ليها سعر ومش "ألوان خاصة") بتتدفع فوراً،
+   والمنتجات اللي بتتلوّن أو ملهاش سعر بتتدفع بعد ما المحل يأكد السعر.
+   مفتاح "الدفع الفوري" في لوحة التحكم بيحوّل كل الطلبات لـ"بعد التأكيد" وقت تغيّر الأسعار. */
+const PAY_DEF = {instant: true, instapay: true, vf: true, cod: true, instapayUrl: "https://ipn.eg/S/hanynagehgreece/instapay/9oN3kI", instapayId: "", vfUrl: "http://vf.eg/vfcash?id=mt&qrId=cKYVtm", vfNumber: ""};
+const PAY = Object.assign({}, PAY_DEF, S.pay || {});
+if (!PAY.instapayId) { const m = String(PAY.instapayUrl || "").match(/\/S\/([^/]+)\/instapay/i); if (m) PAY.instapayId = m[1] + "@instapay" }
+const okUrl = u => /^https?:\/\/[^\s"'<>]+$/.test(String(u || ""));
+const METHODS = [
+  ["instapay", "إنستاباي", PAY.instapay !== false && (okUrl(PAY.instapayUrl) || PAY.instapayId)],
+  ["vf", "فودافون كاش", PAY.vf !== false && (okUrl(PAY.vfUrl) || PAY.vfNumber)],
+  ["cod", "كاش عند الاستلام", PAY.cod !== false]
+].filter(m => m[2]);
+const METHOD_NAME = Object.fromEntries(METHODS.map(m => [m[0], m[1]]));
+const TINT = "ألوان خاصة";
+const tinted = (p, key) => { const k = key && findPk(p, key); return !!(k && k.v === TINT) };
+const payTag = (p, key) => packPrice(p, key) == null ? "" : tinted(p, key) ? `<small class="paytag tint">🎨 يتلوّن حسب طلبك – نأكد السعر قبل الدفع</small>` : PAY.instant !== false ? `<small class="paytag fixed">✓ سعر ثابت – ادفع أونلاين فوراً</small>` : "";
 const pageUrl = p => PAGES && !PAGES.has(p.id) ? `${BASE}product.html?id=${encodeURIComponent(p.id)}` : `${BASE}p/${p.id}.html`;
 /* تسجيل الطلبات والحجوزات في جوجل شيت (لو مربوط) */
 function logEvent(type, o = {}) {
@@ -55,10 +72,14 @@ function logEvent(type, o = {}) {
   let det = o.details || "";
   if (!cust && me && me.email && !det.includes(me.email)) det += (det ? "\n" : "") + "إيميل العميل: " + me.email;
   const row = {type, page: clip(location.pathname, 200), name: clip(o.name || (me && me.name), 80), phone: clip(o.phone || (me && me.phone), 20), area: clip(o.area, 160), total: isFinite(+o.total) && o.total !== "" && o.total != null ? +o.total : null, details: clip(det, 3000)};
-  /* لو قاعدة البيانات لسه ما اتحدثتش لنوع "تسجيل عميل"، بيتسجل كـ"تواصل" بعلامة واللوحة بتفهمها */
-  SB.insert("orders", row).catch(e => {
-    if (!cust || e.status !== 400) throw e;
-    return SB.insert("orders", Object.assign({}, row, {type: "contact", details: clip((type === "signup" ? "👤 تسجيل عميل" : "🔑 دخول عميل") + "\n" + (row.details || ""), 3000)}));
+  if (o.pay) row.pay = o.pay;
+  /* لو قاعدة البيانات لسه ما اتحدثتش (عمود الدفع أو نوع "تسجيل عميل")، الطلب بيتسجل برضو:
+     بيانات الدفع موجودة في التفاصيل، والعميل بيتسجل كـ"تواصل" بعلامة واللوحة بتفهمها */
+  return SB.insert("orders", row).catch(e => {
+    if (e.status !== 400) throw e;
+    if (row.pay) { const r = Object.assign({}, row); delete r.pay; return SB.insert("orders", r) }
+    if (cust) return SB.insert("orders", Object.assign({}, row, {type: "contact", details: clip((type === "signup" ? "👤 تسجيل عميل" : "🔑 دخول عميل") + "\n" + (row.details || ""), 3000)}));
+    throw e;
   }).catch(e => console.warn("order log:", e.message));
 }
 
@@ -148,16 +169,45 @@ window.everestAdd = addToCart;
 function cartLines() {
   return Object.keys(cart).map(k => {
     const [id, s] = k.split("|");
-    if (id === "sample") { const c = colByCode(s); return {k, sample: true, code: s, name: c ? c.n : "", hex: c ? c.h : "#ddd", n: cart[k], sum: S.samplePrice == null ? null : S.samplePrice * cart[k]} }
+    if (id === "sample") { const c = colByCode(s); const sum = S.samplePrice == null ? null : S.samplePrice * cart[k]; return {k, sample: true, code: s, name: c ? c.n : "", hex: c ? c.h : "#ddd", n: cart[k], sum, fixed: PAY.instant !== false && sum != null} }
     const p = byId(id); if (!p) return null; const size = s && findPk(p, s) ? s : null; if (s && !size) return null; const unit = packPrice(p, size);
-    return {k, p, size, n: cart[k], sum: unit == null ? null : unit * cart[k]};
+    /* "ثابت" = ليه سعر ومش بيتلوّن، والدفع الفوري مفتوح */
+    return {k, p, size, n: cart[k], sum: unit == null ? null : unit * cart[k], fixed: PAY.instant !== false && unit != null && !tinted(p, size)};
   }).filter(Boolean);
 }
 function totals() {
-  const L = cartLines(); let sub = 0, unknown = false, cnt = 0;
-  L.forEach(l => { cnt += l.n; if (l.sum == null) unknown = true; else sub += l.sum });
-  const d = disc ? Math.round(sub * disc.percent / 100) : 0;
-  return {L, sub, d, tot: sub - d, unknown, cnt};
+  const L = cartLines(); let sub = 0, unknown = false, cnt = 0, fixedSub = 0, fixedN = 0, pendN = 0, pendSub = 0;
+  L.forEach(l => {
+    cnt += l.n; if (l.sum == null) unknown = true; else sub += l.sum;
+    if (l.fixed) { fixedSub += l.sum; fixedN++ } else { pendN++; if (l.sum != null) pendSub += l.sum }
+  });
+  const pct = disc ? disc.percent / 100 : 0, d = Math.round(sub * pct), fixedNet = fixedSub - Math.round(fixedSub * pct);
+  const mode = !L.length ? "none" : !pendN ? "instant" : !fixedN ? "confirm" : "mixed";
+  return {L, sub, d, tot: sub - d, unknown, cnt, fixedSub, fixedNet, fixedN, pendN, pendSub, mode};
+}
+/* اختيارات الدفع بتتحفظ على الجهاز */
+const PAYSTATE = Object.assign({method: METHODS[0] ? METHODS[0][0] : "cod", split: "now"}, store.get("everest-pay", {}));
+if (!METHOD_NAME[PAYSTATE.method] && METHODS[0]) PAYSTATE.method = METHODS[0][0];
+const dueNow = T => PAYSTATE.method === "cod" ? 0 : T.mode === "instant" ? T.fixedNet : T.mode === "mixed" && PAYSTATE.split === "now" ? T.fixedNet : 0;
+const MODE_TXT = {instant: "دفع فوري", confirm: "الدفع بعد التأكيد", mixed: "مخلوط (جزء فوري وجزء بعد التأكيد)"};
+function payBoxHTML(T) {
+  if (!T.L.length) return "";
+  const head = T.mode === "instant" ? `<div class="pb-note ok">✓ كل منتجاتك سعرها ثابت – تقدر تدفع دلوقتي وطلبك يتجهز على طول.</div>`
+    : T.mode === "confirm" ? `<div class="pb-note tint">${PAY.instant === false ? "🔄 الأسعار بتتحدّث حالياً." : "🎨 طلبك فيه منتجات بتتلوّن حسب طلبك أو سعرها بيتأكد."} هنأكد معاك السعر النهائي واللون على واتساب، وبعدها تدفع.</div>`
+    : `<div class="pb-split">
+        <div><span>✓ جاهز للدفع الآن <small>(${num(T.fixedN)} ${T.fixedN > 1 ? "منتجات" : "منتج"})</small></span><b>${fmt(T.fixedNet)}</b></div>
+        <div><span>🎨 بعد التأكيد <small>(${num(T.pendN)} ${T.pendN > 1 ? "منتجات" : "منتج"} – بتتلوّن أو سعرها بيتأكد)</small></span><b>${T.pendSub ? "≈ " + fmt(T.pendSub - Math.round(T.pendSub * (disc ? disc.percent / 100 : 0))) : "يتحدد"}</b></div>
+      </div>
+      <div class="pb-opts" role="radiogroup" aria-label="طريقة تقسيم الدفع">
+        <label><input type="radio" name="pbSplit" value="now" ${PAYSTATE.split === "now" ? "checked" : ""}><span><b>ادفع الجاهز دلوقتي</b><small>${fmt(T.fixedNet)} الآن، والباقي بعد ما نأكد السعر</small></span></label>
+        <label><input type="radio" name="pbSplit" value="later" ${PAYSTATE.split === "later" ? "checked" : ""}><span><b>ادفع كله مرة واحدة</b><small>بعد ما نأكد معاك السعر النهائي</small></span></label>
+      </div>`;
+  const due = dueNow(T);
+  return `${head}
+    <div class="pb-methods"><span class="pb-lbl">هتدفع إزاي؟</span>
+      <div class="pb-m" role="radiogroup" aria-label="طريقة الدفع">${METHODS.map(([k, n]) => `<label class="m-${k}"><input type="radio" name="pbMethod" value="${k}" ${PAYSTATE.method === k ? "checked" : ""}><span>${k === "instapay" ? "⚡ " : k === "vf" ? "📱 " : "💵 "}${n}</span></label>`).join("")}</div>
+    </div>
+    ${due > 0 ? `<div class="pb-due"><span>المطلوب دفعه الآن</span><b>${fmt(due)}</b></div>` : ""}`;
 }
 function renderCart() {
   if (!$("#items")) return;
@@ -166,17 +216,67 @@ function renderCart() {
     const th = l.sample ? `<i class="th" style="background:${l.hex}"></i>` : SRC(l.p) ? `<img class="th" src="${esc(SRC(l.p))}" alt="">` : `<i class="th" style="background:${l.p.col}"></i>`;
     const title = l.sample ? `عيّنة لون ${esc(l.code)} ${esc(l.name)}` : esc(l.p.ar);
     const sub = l.sample ? "عيّنة لون" : l.size ? `عبوة ${unitLabel(l.p, l.size)}` : `بال${l.p.u === "كجم" ? "كيلو" : "لتر"}`;
-    return `<div class="ci">${th}<div class="t"><b>${title}</b><small>${sub} · ${l.sum == null ? (l.sample ? "مجاناً / عند التأكيد" : "السعر عند التأكيد") : fmt(l.sum)}</small></div>
+    const tag = l.fixed ? `<span class="ltag fixed">سعر ثابت</span>` : `<span class="ltag tint">${l.sum == null ? "السعر بعد التأكيد" : l.p && tinted(l.p, l.size) ? "يتلوّن – بعد التأكيد" : "الدفع بعد التأكيد"}</span>`;
+    return `<div class="ci">${th}<div class="t"><b>${title}</b><small>${sub} · ${l.sum == null ? (l.sample ? "مجاناً / عند التأكيد" : "السعر عند التأكيد") : fmt(l.sum)}</small>${tag}</div>
       <div class="qty"><button data-k="${esc(l.k)}" data-d="1" aria-label="زيادة">+</button><span>${num(l.n)}</span><button data-k="${esc(l.k)}" data-d="-1" aria-label="نقص">−</button></div></div>`;
   }).join("") : `<p style="color:var(--muted);text-align:center;padding:40px 0">السلة فارغة</p>`;
   $("#subtotal").textContent = fmt(T.sub);
   $("#discRow").hidden = !disc; if (disc) { $("#discLabel").textContent = `${disc.label} (${num(disc.percent)}٪)`; $("#discVal").textContent = "− " + fmt(T.d) }
   $("#total").textContent = fmt(T.tot); $("#cartCount").textContent = num(T.cnt); $("#totNote").style.display = T.unknown ? "block" : "none";
+  const pb = $("#payBox"); if (pb) pb.innerHTML = payBoxHTML(T);
+  const due = dueNow(T), btn = $("#checkout");
+  if (btn) btn.textContent = !T.L.length ? "إرسال الطلب" : due > 0 ? `تأكيد الطلب والدفع (${fmt(due)})` : "تأكيد الطلب";
+  const hint = $("#checkoutHint"); if (hint) hint.textContent = !T.L.length ? "" : due > 0 ? `بعد التأكيد هتظهرلك بيانات ${METHOD_NAME[PAYSTATE.method] || "الدفع"} ورقم طلبك.` : PAYSTATE.method === "cod" && T.mode === "instant" ? "هتدفع كاش وقت الاستلام." : "هنتواصل معاك على واتساب نأكد السعر النهائي والتوصيل.";
+}
+const copyTxt = async (t, b) => { try { await navigator.clipboard.writeText(t); if (b) { const o = b.textContent; b.textContent = "✓ اتنسخ"; setTimeout(() => b.textContent = o, 1500) } } catch (e) { prompt("انسخ:", t) } };
+function orderNo() { const d = new Date(), p = n => String(n).padStart(2, "0"); return `EV-${p(d.getMonth() + 1)}${p(d.getDate())}-${Math.random().toString(36).slice(2, 6).toUpperCase()}` }
+/* شاشة "تم استلام طلبك" + بيانات الدفع */
+function showSuccess(o) {
+  const online = o.due > 0, m = o.method;
+  const payCard = !online ? "" : `
+    <div class="os-pay">
+      <div class="os-amount"><span>المطلوب دفعه الآن</span><b>${fmt(o.due)}</b><button class="cp" data-copy="${o.due}">نسخ المبلغ</button></div>
+      ${m === "instapay" ? `
+        ${PAY.instapayId ? `<div class="os-row"><span>عنوان إنستاباي</span><b dir="ltr">${esc(PAY.instapayId)}</b><button class="cp" data-copy="${esc(PAY.instapayId)}">نسخ</button></div>` : ""}
+        ${okUrl(PAY.instapayUrl) ? `<a class="btn os-go ip" href="${esc(PAY.instapayUrl)}" target="_blank" rel="noopener">⚡ ادفع بإنستاباي</a>` : ""}`
+      : `
+        ${PAY.vfNumber ? `<div class="os-row"><span>رقم فودافون كاش</span><b dir="ltr">${esc(PAY.vfNumber)}</b><button class="cp" data-copy="${esc(PAY.vfNumber)}">نسخ</button></div>` : ""}
+        ${okUrl(PAY.vfUrl) ? `<a class="btn os-go vf" href="${esc(PAY.vfUrl)}" target="_blank" rel="noopener">📱 ادفع بفودافون كاش</a>` : ""}`}
+      <ol class="os-steps">
+        <li>حوّل <b>${fmt(o.due)}</b> بالظبط.</li>
+        <li>اكتب رقم الطلب <b dir="ltr">${o.no}</b> في ملاحظة التحويل لو متاح.</li>
+        <li>ابعتلنا صورة التحويل على واتساب وطلبك يتجهز.</li>
+      </ol>
+      <a class="btn btn-wa os-wa" href="${wa(`طلب رقم ${o.no}\nتم التحويل بمبلغ ${fmt(o.due)} عن طريق ${METHOD_NAME[m]}.\n(مرفق صورة التحويل)`)}" target="_blank" rel="noopener">ابعت صورة التحويل على واتساب</a>
+      ${o.mode === "mixed" ? `<p class="os-note">🎨 باقي طلبك (المنتجات اللي بتتلوّن) هنأكد سعرها معاك على واتساب ونبعتلك المبلغ المتبقي.</p>` : ""}
+    </div>`;
+  const later = online ? "" : `<p class="os-msg">${m === "cod" && o.mode === "instant" ? "💵 هتدفع <b>كاش وقت الاستلام</b>. هنتواصل معاك على واتساب نأكد ميعاد التوصيل." : `${PAY.instant === false ? "🔄" : "🎨"} هنتواصل معاك على واتساب نأكد <b>السعر النهائي${PAY.instant === false ? "" : " واللون"}</b>، وبعدها ${m === "cod" ? "تدفع كاش وقت الاستلام" : `نبعتلك المبلغ وتدفع بـ${METHOD_NAME[m]}`}.`}</p>
+    <a class="btn btn-wa os-wa" href="${wa(o.msg)}" target="_blank" rel="noopener">ابعت تفاصيل الطلب على واتساب</a>`;
+  const box = document.createElement("div"); box.className = "osuccess"; box.id = "oSuccess";
+  box.innerHTML = `<div class="os-in">
+    <div class="os-ok">✓</div>
+    <h3>تم استلام طلبك</h3>
+    <div class="os-no"><span>رقم الطلب</span><b dir="ltr">${o.no}</b><button class="cp" data-copy="${o.no}">نسخ</button></div>
+    ${payCard}${later}
+    ${online ? `<a class="os-link" href="${wa(o.msg)}" target="_blank" rel="noopener">ابعت تفاصيل الطلب كاملة على واتساب</a>` : ""}
+    <button class="os-close" type="button">متابعة التسوق</button>
+  </div>`;
+  $("#drawer").appendChild(box);
+  box.addEventListener("click", e => { const c = e.target.closest("[data-copy]"); if (c) copyTxt(c.dataset.copy, c); if (e.target.closest(".os-close")) box.remove() });
 }
 if ($("#items")) {
   $("#items").addEventListener("click", e => { const b = e.target.closest("[data-k]"); if (b) addToCart(b.dataset.k, +b.dataset.d, true) });
+  /* صندوق الدفع قبل زرار الطلب (بيتضاف لكل الصفحات من هنا) */
+  $("#checkout").insertAdjacentHTML("beforebegin", `<div class="paybox" id="payBox"></div>`);
+  const hintEl = $("#checkout").nextElementSibling; if (hintEl && hintEl.tagName === "SMALL") hintEl.id = "checkoutHint";
+  $("#checkout").classList.remove("btn-wa"); $("#checkout").classList.add("btn-primary", "btn-pay");
+  $("#payBox").addEventListener("change", e => {
+    if (e.target.name === "pbMethod") PAYSTATE.method = e.target.value;
+    if (e.target.name === "pbSplit") PAYSTATE.split = e.target.value;
+    store.set("everest-pay", {method: PAYSTATE.method, split: PAYSTATE.split}); renderCart();
+  });
   const openC = () => { $("#drawer").classList.add("on"); $("#overlay").classList.add("on") };
-  const closeC = () => { $("#drawer").classList.remove("on"); $("#overlay").classList.remove("on") };
+  const closeC = () => { $("#drawer").classList.remove("on"); $("#overlay").classList.remove("on"); const s = $("#oSuccess"); if (s) s.remove() };
   window.everestOpenCart = openC;
   $("#openCart").onclick = openC; $("#closeCart").onclick = closeC; $("#overlay").onclick = closeC;
   if (location.hash === "#cart") openC();
@@ -190,14 +290,20 @@ if ($("#items")) {
   };
   $("#checkout").onclick = () => {
     const T = totals(); if (!T.L.length) return toast("السلة فارغة");
-    const name = $("#oName").value.trim(), phone = $("#oPhone").value.trim();
+    const name = $("#oName").value.trim(), phone = $("#oPhone").value.trim(), addr = $("#oAddr").value.trim();
     if (!name || !phone) return toast("من فضلك اكتب الاسم ورقم الهاتف");
-    const lines = T.L.map(l => l.sample ? `• عيّنة لون ${l.code} ${l.name} × ${l.n}` : `• ${l.p.ar} — ${l.size ? `عبوة ${unitLabel(l.p, l.size)} × ${l.n}` : `${l.n} ${l.p.u}`} = ${l.sum == null ? "السعر عند التأكيد" : fmt(l.sum)}`);
+    const no = orderNo(), method = PAYSTATE.method, due = dueNow(T);
+    /* السعر بيتحفظ مع الطلب وقت عمله – لو الأسعار اتغيرت بعدين الطلب بيفضل بسعره */
+    const lines = T.L.map(l => (l.sample ? `• عيّنة لون ${l.code} ${l.name} × ${l.n}` : `• ${l.p.ar} — ${l.size ? `عبوة ${unitLabel(l.p, l.size)} × ${l.n}` : `${l.n} ${l.p.u}`}`) + ` = ${l.sum == null ? "السعر عند التأكيد" : fmt(l.sum)} ${l.fixed ? "[سعر ثابت]" : "[بعد التأكيد]"}`);
     const color = $("#oColor").value.trim();
-    const msg = `طلب جديد من متجر إفرست 🛒\n\n${lines.join("\n")}\n\nالمجموع: ${fmt(T.sub)}${disc ? `\nخصم ${disc.label} (${disc.code}): − ${fmt(T.d)}` : ""}\nالإجمالي التقريبي: ${fmt(T.tot)}${T.unknown ? " + منتجات سعرها عند التأكيد" : ""}${color ? `\nكود اللون: ${color}` : ""}\n\nالاسم: ${name}\nالهاتف: ${phone}\nالعنوان: ${$("#oAddr").value.trim() || "-"}`;
-    track("begin_checkout", {currency: "EGP", value: T.tot, coupon: disc ? disc.code : undefined});
-    logEvent("order", {name, phone, area: $("#oAddr").value.trim(), total: T.tot, details: lines.join("\n") + (disc ? `\nكود خصم: ${disc.code} (${disc.percent}٪)` : "") + (color ? `\nكود اللون: ${color}` : "") + (T.unknown ? "\nبعض المنتجات سعرها عند التأكيد" : "")});
-    window.open(wa(msg), "_blank");
+    const payTxt = [`طريقة الدفع: ${METHOD_NAME[method] || "-"}`, `نوع الطلب: ${MODE_TXT[T.mode]}`, due > 0 ? `المطلوب الآن: ${fmt(due)}` : (T.mode === "mixed" && method !== "cod" ? "الدفع: كله بعد التأكيد" : "")].filter(Boolean).join("\n");
+    const msg = `طلب جديد من متجر إفرست 🛒\nرقم الطلب: ${no}\n\n${lines.join("\n")}\n\nالمجموع: ${fmt(T.sub)}${disc ? `\nخصم ${disc.label} (${disc.code}): − ${fmt(T.d)}` : ""}\nالإجمالي التقريبي: ${fmt(T.tot)}${T.unknown ? " + منتجات سعرها عند التأكيد" : ""}${color ? `\nكود اللون: ${color}` : ""}\n${payTxt}\n\nالاسم: ${name}\nالهاتف: ${phone}\nالعنوان: ${addr || "-"}`;
+    track("begin_checkout", {currency: "EGP", value: T.tot, coupon: disc ? disc.code : undefined, payment_type: method});
+    logEvent("order", {name, phone, area: addr, total: T.tot,
+      details: `رقم الطلب: ${no}\n${lines.join("\n")}` + (disc ? `\nكود خصم: ${disc.code} (${disc.percent}٪)` : "") + (color ? `\nكود اللون: ${color}` : "") + `\n${payTxt}`,
+      pay: {no, mode: T.mode, method, split: T.mode === "mixed" ? PAYSTATE.split : null, due_now: due, fixed: T.fixedNet, pending_items: T.pendN, status: "لم يدفع", paid: 0, final: T.unknown || T.mode !== "instant" ? null : T.tot}});
+    showSuccess({no, due, method, mode: T.mode, msg});
+    cart = {}; disc = null; $("#codeIn").value = ""; save(); renderCart();
   };
   renderCart();
 }
@@ -214,7 +320,7 @@ const sel = {}; P.forEach(p => { const L = PK(p), W = L.filter(isWhite); const d
 function cardPrice(p) {
   const pr = packPrice(p, sel[p.id]);
   if (pr == null) return `<div class="price"><span class="ask">السعر عند الطلب</span></div>`;
-  return `<div class="price"><b>${num(Math.round(pr))}</b> <small>ج.م / ${unitLabel(p, sel[p.id])}</small></div>`;
+  return `<div class="price"><b>${num(Math.round(pr))}</b> <small>ج.م / ${unitLabel(p, sel[p.id])}</small>${payTag(p, sel[p.id])}</div>`;
 }
 function sizesHTML(p) {
   const L = PK(p);

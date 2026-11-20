@@ -545,3 +545,58 @@ html.cust-gate body::before{content:"";position:fixed;inset:0;z-index:125;backgr
 @media (max-width:640px){.dash-credit{flex-direction:column;align-items:flex-start}.dc-contact a{font-size:12px}}
 footer.site{padding-bottom:96px}
 .achips.big{grid-template-columns:repeat(6,1fr)}@media (max-width:520px){.achips.big{grid-template-columns:repeat(3,1fr)}}
+
+/* ---------- الدفع: إنستاباي وفودافون كاش ---------- */
+.paytag{display:block;font-size:12px;font-weight:600;margin-top:4px;line-height:1.5}
+.paytag.fixed{color:#13804a}
+.paytag.tint{color:#a35a00}
+.ci .ltag{display:inline-block;margin-top:4px;font-size:11px;font-weight:700;padding:1px 8px;border-radius:20px}
+.ltag.fixed{background:#e6f6ed;color:#13804a}
+.ltag.tint{background:#fff3e0;color:#a35a00}
+.paybox{display:flex;flex-direction:column;gap:10px}
+.paybox:empty{display:none}
+.pb-note{font-size:13px;padding:10px 12px;line-height:1.6}
+.pb-note.ok{background:#e6f6ed;color:#0e5e37}
+.pb-note.tint{background:#fff3e0;color:#7a4300}
+.pb-split{border:1px solid var(--line)}
+.pb-split>div{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 12px;font-size:13px}
+.pb-split>div+div{border-top:1px dashed var(--line)}
+.pb-split small{color:var(--muted);font-size:11px}
+.pb-split b{white-space:nowrap}
+.pb-opts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pb-opts label,.pb-m label{cursor:pointer;position:relative}
+.pb-opts input,.pb-m input{position:absolute;opacity:0;pointer-events:none}
+.pb-opts span{display:flex;flex-direction:column;gap:2px;height:100%;border:1px solid var(--line);padding:9px 10px;font-size:13px;transition:.2s}
+.pb-opts small{color:var(--muted);font-size:11px;line-height:1.5}
+.pb-opts input:checked+span,.pb-m input:checked+span{border-color:var(--jotun-blue,#003087);box-shadow:inset 0 0 0 1px var(--jotun-blue,#003087);background:#f2f5fb}
+.pb-opts input:focus-visible+span,.pb-m input:focus-visible+span{outline:2px solid var(--ink)}
+.pb-lbl{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+.pb-m{display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));gap:8px}
+.pb-m span{display:block;text-align:center;border:1px solid var(--line);padding:10px 6px;font-size:13px;font-weight:600;transition:.2s}
+.pb-due{display:flex;justify-content:space-between;align-items:center;background:var(--jotun-blue,#003087);color:#fff;padding:10px 12px;font-size:14px}
+.pb-due b{font-size:17px}
+.btn-pay{background:var(--jotun-blue,#003087)!important;color:#fff}
+.btn-pay:hover{background:#00205c!important}
+/* شاشة تم استلام الطلب */
+.osuccess{position:absolute;inset:0;z-index:5;background:#fff;overflow:auto;animation:aIn .3s var(--ease)}
+.os-in{padding:28px 24px 30px;display:flex;flex-direction:column;gap:14px;text-align:center}
+.os-ok{width:58px;height:58px;border-radius:50%;background:#e6f6ed;color:#13804a;font-size:30px;display:grid;place-items:center;margin:0 auto}
+.os-in h3{font-size:22px;margin:0}
+.os-no,.os-row,.os-amount{display:flex;align-items:center;gap:10px;justify-content:space-between;border:1px solid var(--line);padding:10px 12px;font-size:13px;text-align:start}
+.os-no b,.os-row b{font-size:16px;letter-spacing:.5px;word-break:break-all}
+.os-amount{background:#f2f5fb;border-color:#cfd9ee}
+.os-amount b{font-size:20px;color:var(--jotun-blue,#003087)}
+.os-no span,.os-row span,.os-amount span{color:var(--muted);white-space:nowrap}
+.cp{flex:none;border:1px solid var(--line);padding:4px 10px;font-size:12px;background:#fff}
+.cp:hover{border-color:var(--ink)}
+.os-pay{display:flex;flex-direction:column;gap:10px}
+.os-go{width:100%;color:#fff;font-size:16px}
+.os-go.ip{background:#5c2d91}.os-go.ip:hover{background:#45206e}
+.os-go.vf{background:#e60000}.os-go.vf:hover{background:#b80000}
+.os-steps{text-align:start;font-size:13px;color:var(--ink-2);padding-inline-start:20px;line-height:1.9;margin:0}
+.os-wa{width:100%}
+.os-note,.os-msg{font-size:13px;line-height:1.7;background:#fff3e0;color:#7a4300;padding:10px 12px;text-align:start;margin:0}
+.os-msg{background:#f2f5fb;color:var(--ink)}
+.os-link{font-size:13px;color:var(--jotun-blue,#003087);text-decoration:underline}
+.os-close{font-size:14px;color:var(--muted);text-decoration:underline;margin-top:4px}
+@media (max-width:420px){.pb-opts{grid-template-columns:1fr}}
