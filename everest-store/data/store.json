@@ -1,0 +1,2218 @@
+{
+  "settings": {
+    "storeName": "إفرست للدهانات والديكور",
+    "siteUrl": "https://www.example.com",
+    "apiUrl": "api.php",
+    "whatsapp": "201140860075",
+    "phone": "+201140860075",
+    "phoneDisplay": "0114 086 0075",
+    "address": "شارع مؤسسة الزكاة، بركة النصر، المرج، القاهرة",
+    "plusCode": "592C+QQ المرج",
+    "openHour": 9,
+    "closeHour": 19,
+    "closedDays": [
+      5
+    ],
+    "bookingDaysAhead": 14,
+    "bookingSlots": [
+      "10:00",
+      "11:00",
+      "12:00",
+      "13:00",
+      "14:00",
+      "15:00",
+      "16:00",
+      "17:00"
+    ],
+    "samplePrice": null,
+    "googleReviewUrl": "",
+    "googleRating": null,
+    "googleReviewCount": null,
+    "ga4Id": "",
+    "fbPixelId": "",
+    "wallFactor": 2.8,
+    "priceNote": "الأسعار للون الأبيض وشاملة ضريبة القيمة المضافة 14٪ – أسعار الألوان حسب المزج. سارية من 4/11/2026.",
+    "priceListDate": "2026-11-04"
+  },
+  "products": [
+    {
+      "id": "wonderwall-lux",
+      "active": true,
+      "cat": "interior",
+      "line": "Fenomastic",
+      "ar": "فينوماستيك مذهل راقي",
+      "en": "Fenomastic Wonderwall Lux",
+      "d": "دهان مطفي فريد بلمسة ناعمة أنيقة، بدون رائحة دهان تقليدية ويحسّن جودة الهواء الداخلي.",
+      "f": [
+        "مطفي ناعم",
+        "تنظيف سهل",
+        "بدون رائحة"
+      ],
+      "img": 190943,
+      "price": null,
+      "u": "لتر",
+      "sizes": null,
+      "cov": 11,
+      "url": "interior/all-interior-products/fenomastic-wonderwall-lux",
+      "best": true,
+      "packs": [
+        {
+          "s": 2.5,
+          "u": "لتر",
+          "p": 1271
+        },
+        {
+          "s": 8,
+          "u": "لتر",
+          "p": 3926
+        }
+      ]
+    },
+    {
+      "id": "wonderwall-life",
+      "active": true,
+      "cat": "interior",
+      "line": "Fenomastic",
+      "ar": "فينوماستيك مذهل حياة",
+      "en": "Fenomastic Wonderwall Life",
+      "d": "لمسات حريرية فاخرة مع أعلى درجات التحمل للغسل، بدون رائحة دهان تقليدية.",
+      "f": [
+        "حريري فاخر",
+        "أعلى تحمل للغسل",
+        "بدون رائحة"
+      ],
+      "img": 190944,
+      "price": null,
+      "u": "لتر",
+      "sizes": null,
+      "cov": 11,
+      "url": "interior/all-interior-products/fenomastic-wonderwall-lifee",
+      "best": false,
+      "packs": [
+        {
+          "s": 2.5,
+          "u": "لتر",
+          "p": 1296
+        },
+        {
+          "s": 8,
+          "u": "لتر",
+          "p": 4006
+        }
+      ]
+    },
+    {
+      "id": "myhome-rich-matt",
+      "active": true,
+      "cat": "interior",
+      "line": "Fenomastic",
+      "ar": "فينوماستيك بيتي مطفي غني",
+      "en": "Fenomastic My Home Rich Matt",
+      "d": "طلاء أكريليك عالي الجودة بتجربة ألوان فريدة وقابلية غسل عالية بفضل ملمسه المطفي الناعم.",
+      "f": [
+        "مطفي ناعم",
+        "ألوان فريدة",
+        "قابل للغسل"
+      ],
+      "img": 209770,
+      "price": null,
+      "u": "لتر",
+      "sizes": null,
+      "cov": 11,
+      "url": "interior/all-interior-products/fenomastic-my-home-rich-matt",
+      "best": true,
+      "packs": [
+        {
+          "s": 3,
+          "u": "لتر",
+          "p": 1034
+        },
+        {
+          "s": 9,
+          "u": "لتر",
+          "p": 3013
+        }
+      ]
+    },
+    {
+      "id": "myhome-smooth-silk",
+      "active": true,
+      "cat": "interior",
+      "line": "Fenomastic",
+      "ar": "فينوماستيك بيتي ناعم حريري",
+      "en": "Fenomastic My Home Smooth Silk",
+      "d": "دهان مائي فائق الجودة يمنح الجدار مظهراً ناعماً حريرياً ودقة عالية في الألوان.",
+      "f": [
+        "ناعم حريري",
+        "قابل للغسل",
+        "دقة الألوان"
+      ],
+      "img": 209767,
+      "price": null,
+      "u": "لتر",
+      "sizes": null,
+      "cov": 11,
+      "url": "interior/all-interior-products/fenomastic-my-home-smooth-silk",
+      "best": false,
+      "packs": [
+        {
+          "s": 3,
+          "u": "لتر",
+          "p": 1026
+        },
+        {
+          "s": 9,
+          "u": "لتر",
+          "p": 2984
+        }
+      ]
+    },
+    {
+      "id": "ld-suede",
+      "active": true,
+      "cat": "deco",
+      "line": "Lady Design",
+      "ar": "تصميمات ليدي لمسة شامواه",
+      "en": "Lady Design Touch of Suede",
+      "d": "أناقة الشامواه المصقول بملمس مطفي فريد وأكثر من 80 لوناً، سهل التطبيق ومنخفض VOC.",
+      "f": [
+        "ملمس شامواه",
+        "VOC منخفض",
+        "سهل التطبيق"
+      ],
+      "img": 202501,
+      "price": null,
+      "u": "لتر",
+      "sizes": null,
+      "cov": 8,
+      "url": "interior/all-interior-products/lady-design-touch-of-suede",
+      "best": false,
+      "packs": [
+        {
+          "s": 0.9,
+          "u": "لتر",
+          "p": 1776
+        },
+        {
+          "s": 2.7,
+          "u": "لتر",
+          "p": 5174
+        }
+      ]
+    },
+    {
+      "id": "ld-velvet",
+      "active": true,
+      "cat": "deco",
+      "line": "Lady Design",
+      "ar": "تصميمات ليدي رويال فلفيت",
+      "en": "Lady Design Royal Velvet",
+      "d": "ملمس مخملي ناعم يضفي لمسة من الفخامة على الجدران.",
+      "f": [
+        "ملمس مخملي",
+        "فخامة"
+      ],
+      "img": 202622,
+      "price": null,
+      "u": "لتر",
+      "sizes": null,
+      "cov": 8,
+      "url": "interior/all-interior-products/lady-design-royal-velvet",
+      "best": false,
+      "packs": [
+        {
+          "s": 0.9,
+          "u": "لتر",
+          "p": 1289
+        },
+        {
+          "s": 2.7,
+          "u": "لتر",
+          "p": 3778
+        }
+      ]
+    },
+    {
+      "id": "ld-romano",
+      "active": true,
+      "cat": "deco",
+      "line": "Lady Design",
+      "ar": "رومانو من تصميمات ليدي",
+      "en": "Lady Design Romano",
+      "d": "مظهر الأحجار الرومانية الكلاسيكي ببريق الألماس، أساس مائي للاستخدام الداخلي.",
+      "f": [
+        "مظهر روماني",
+        "بريق الألماس"
+      ],
+      "img": 202610,
+      "price": null,
+      "u": "لتر",
+      "sizes": null,
+      "cov": 6,
+      "url": "interior/all-interior-products/lady-design-romano",
+      "best": false,
+      "packs": [
+        {
+          "s": 4,
+          "u": "لتر",
+          "p": 827
+        },
+        {
+          "s": 10,
+          "u": "لتر",
+          "p": 2009
+        }
+      ]
+    },
+    {
+      "id": "ld-stucco",
+      "active": true,
+      "cat": "deco",
+      "line": "Lady Design",
+      "ar": "تصميمات ليدي ستوكو أنتيكا",
+      "en": "Lady Design Stucco Antica",
+      "d": "تشطيب بمظهر رخامي أثري راقٍ، أساس مائي عالي الجودة.",
+      "f": [
+        "مظهر رخامي",
+        "أثري راقٍ"
+      ],
+      "img": 202625,
+      "price": null,
+      "u": "كجم",
+      "sizes": null,
+      "cov": 1.5,
+      "url": "interior/all-interior-products/lady-design-stucco-antica",
+      "best": false,
+      "packs": [
+        {
+          "s": 1.4,
+          "u": "كجم",
+          "p": 346
+        },
+        {
+          "s": 4.2,
+          "u": "كجم",
+          "p": 978
+        },
+        {
+          "s": 14,
+          "u": "كجم",
+          "p": 3258
+        }
+      ]
+    },
+    {
+      "id": "ld-glaze",
+      "active": true,
+      "cat": "deco",
+      "line": "Lady Design",
+      "ar": "تصميمات ليدي جليز",
+      "en": "Lady Design Glaze",
+      "d": "يمنح الجدران لونين بمظهر عتيق ولمسة لمعان عصرية.",
+      "f": [
+        "لمعان عصري",
+        "مظهر عتيق"
+      ],
+      "img": 202615,
+      "price": null,
+      "u": "لتر",
+      "sizes": null,
+      "cov": 10,
+      "url": "interior/all-interior-products/lady-design-glaze",
+      "best": false,
+      "packs": [
+        {
+          "s": 0.45,
+          "u": "لتر",
+          "p": 327
+        }
+      ]
+    },
+    {
+      "id": "ld-pearl",
+      "active": true,
+      "cat": "deco",
+      "line": "Lady Design",
+      "ar": "تصميمات ليدي بيرل",
+      "en": "Lady Design Pearl",
+      "d": "تشطيبات بمظهر لؤلؤي عصري أنيق، أساس مائي للاستخدام الداخلي.",
+      "f": [
+        "مظهر لؤلؤي",
+        "أنيق"
+      ],
+      "img": 202619,
+      "price": null,
+      "u": "لتر",
+      "sizes": null,
+      "cov": 8,
+      "url": "interior/all-interior-products/lady-design-pearl",
+      "best": false,
+      "packs": [
+        {
+          "s": 0.9,
+          "u": "لتر",
+          "p": 893
+        },
+        {
+          "s": 2.7,
+          "u": "لتر",
+          "p": 2599
+        }
+      ]
+    },
+    {
+      "id": "js-eterna",
+      "active": true,
+      "cat": "exterior",
+      "line": "Jotashield",
+      "ar": "جوتاشيلد إيترنا",
+      "en": "Jotashield Eterna",
+      "d": "طلاء خارجي فاخر بمواد رابطة أكريليك نقية؛ أقصى شدة لون ويبقى نظيفاً وناصعاً.",
+      "f": [
+        "أقصى ثبات للون",
+        "يبقى نظيفاً",
+        "قابل للغسل"
+      ],
+      "img": 220575,
+      "price": null,
+      "u": "لتر",
+      "sizes": null,
+      "cov": 9,
+      "url": "exterior/all-exterior-products/jotashield-eterna",
+      "best": true,
+      "packs": [
+        {
+          "s": 1,
+          "u": "لتر",
+          "p": 370
+        },
+        {
+          "s": 10,
+          "u": "لتر",
+          "p": 3566
+        }
+      ]
+    },
+    {
+      "id": "js-colourlast-matt",
+      "active": true,
+      "cat": "exterior",
+      "line": "Jotashield",
+      "ar": "جوتاشيلد ألوان تدوم مطفي",
+      "en": "Jotashield ColourLast Matt",
+      "d": "دهان خارجي عالي الجودة بأداء لون متقدم وحماية مضمونة للأسمنت وقلة صيانة.",
+      "f": [
+        "أداء لون متقدم",
+        "حماية الأسمنت",
+        "صيانة أقل"
+      ],
+      "img": 220573,
+      "price": null,
+      "u": "لتر",
+      "sizes": null,
+      "cov": 9,
+      "url": "exterior/all-exterior-products/jotashield-colourlast-matt",
+      "best": false,
+      "packs": [
+        {
+          "s": 10,
+          "u": "لتر",
+          "p": 2916
+        }
+      ]
+    },
+    {
+      "id": "js-colourlast",
+      "active": true,
+      "cat": "exterior",
+      "line": "Jotashield",
+      "ar": "جوتاشيلد ألوان تدوم حرير",
+      "en": "Jotashield ColourLast",
+      "d": "دهان خارجي حريري بأداء لون متقدم وحماية مضمونة للأسمنت.",
+      "f": [
+        "حريري",
+        "حماية الأسمنت",
+        "صيانة أقل"
+      ],
+      "img": 220573,
+      "price": null,
+      "u": "لتر",
+      "sizes": null,
+      "cov": 9,
+      "url": "exterior/all-exterior-products/jotashield-colourlast",
+      "best": false,
+      "packs": [
+        {
+          "s": 10,
+          "u": "لتر",
+          "p": 2989
+        }
+      ]
+    },
+    {
+      "id": "js-travertine",
+      "active": true,
+      "cat": "exterior",
+      "line": "Jotashield Decor",
+      "ar": "جوتاشيلد ديكور ترافرتين",
+      "en": "Jotashield Decor Travertine",
+      "d": "دهان خارجي بمظهر حجري عريق، يغطي التموجات البسيطة بحماية تدوم طويلاً.",
+      "f": [
+        "مظهر حجري",
+        "حماية طويلة"
+      ],
+      "img": 220569,
+      "price": null,
+      "u": "لتر",
+      "sizes": null,
+      "cov": 3,
+      "url": "exterior/all-exterior-products/jotashield-decor-travertine",
+      "best": false,
+      "packs": [
+        {
+          "s": 10,
+          "u": "لتر",
+          "p": 2087
+        }
+      ]
+    },
+    {
+      "id": "js-highbuild",
+      "active": true,
+      "cat": "exterior",
+      "line": "Jotashield Decor",
+      "ar": "جوتاشيلد ديكور هاي بيلد",
+      "en": "Jotashield Decor High Build",
+      "d": "يمنح المباني مظهراً تراثياً أصيلاً ويغطي تشققات الأسطح البسيطة.",
+      "f": [
+        "مظهر تراثي",
+        "يغطي التشققات"
+      ],
+      "img": 220569,
+      "price": null,
+      "u": "لتر",
+      "sizes": null,
+      "cov": 3,
+      "url": "exterior/all-exterior-products/jotashield-decor-high-build",
+      "best": false,
+      "packs": [
+        {
+          "s": 10,
+          "u": "لتر",
+          "p": 1517,
+          "v": "أبيض"
+        },
+        {
+          "s": 20,
+          "u": "لتر",
+          "p": 2946,
+          "v": "أبيض"
+        },
+        {
+          "s": 10,
+          "u": "لتر",
+          "p": 1639,
+          "v": "ألوان خاصة"
+        },
+        {
+          "s": 20,
+          "u": "لتر",
+          "p": 3181,
+          "v": "ألوان خاصة"
+        }
+      ]
+    },
+    {
+      "id": "js-highbuild-fine",
+      "active": true,
+      "cat": "exterior",
+      "line": "Jotashield Decor",
+      "ar": "جوتاشيلد ديكور هاي بيلد فاين",
+      "en": "Jotashield Decor High Build Fine",
+      "d": "مظهر تراثي عصري مع تغطية تشققات الأسطح البسيطة.",
+      "f": [
+        "تراثي عصري",
+        "يغطي التشققات"
+      ],
+      "img": 220569,
+      "price": null,
+      "u": "لتر",
+      "sizes": null,
+      "cov": 3.5,
+      "url": "exterior/all-exterior-products/jotashield-decor-high-build-fine",
+      "best": false,
+      "isNew": true,
+      "packs": [
+        {
+          "s": 10,
+          "u": "لتر",
+          "p": 1610,
+          "v": "أبيض"
+        },
+        {
+          "s": 20,
+          "u": "لتر",
+          "p": 3125,
+          "v": "أبيض"
+        },
+        {
+          "s": 10,
+          "u": "لتر",
+          "p": 1739,
+          "v": "ألوان خاصة"
+        },
+        {
+          "s": 3,
+          "u": "لتر",
+          "p": 497,
+          "v": "ألوان جاهزة"
+        },
+        {
+          "s": 10,
+          "u": "لتر",
+          "p": 1610,
+          "v": "ألوان جاهزة"
+        }
+      ]
+    },
+    {
+      "id": "js-traditional",
+      "active": true,
+      "cat": "exterior",
+      "line": "Jotashield Decor",
+      "ar": "جوتاشيلد ديكور تراديشنال تيكس",
+      "en": "Jotashield Decor Traditional Tex",
+      "d": "لمسة راقية تقليدية للواجهات بأعلى أداء للون وحماية تدوم.",
+      "f": [
+        "لمسة تقليدية",
+        "حماية طويلة"
+      ],
+      "img": 220569,
+      "price": null,
+      "u": "لتر",
+      "sizes": null,
+      "cov": 3,
+      "url": "exterior/all-exterior-products/jotashield-decor-traditional-tex",
+      "best": false,
+      "packs": [
+        {
+          "s": 10,
+          "u": "لتر",
+          "p": 1857,
+          "v": "أبيض"
+        },
+        {
+          "s": 20,
+          "u": "لتر",
+          "p": 3605,
+          "v": "أبيض"
+        },
+        {
+          "s": 10,
+          "u": "لتر",
+          "p": 2191,
+          "v": "ألوان خاصة"
+        },
+        {
+          "s": 20,
+          "u": "لتر",
+          "p": 3893,
+          "v": "ألوان خاصة"
+        }
+      ]
+    },
+    {
+      "id": "js-tex-fine",
+      "active": true,
+      "cat": "exterior",
+      "line": "Jotashield Tex",
+      "ar": "جوتاشيلد تيكس فاين",
+      "en": "Jotashield Tex Fine",
+      "d": "دهان خارجي ناعم الملمس عالي الجودة مع حماية من التشققات.",
+      "f": [
+        "ملمس ناعم",
+        "ضد التشققات"
+      ],
+      "img": 109980,
+      "price": null,
+      "u": "لتر",
+      "sizes": null,
+      "cov": 4,
+      "url": "exterior/all-exterior-products/jotashield-tex-fine",
+      "best": false,
+      "packs": [
+        {
+          "s": 10,
+          "u": "لتر",
+          "p": 3028
+        }
+      ]
+    },
+    {
+      "id": "js-tex-medium",
+      "active": true,
+      "cat": "exterior",
+      "line": "Jotashield Tex",
+      "ar": "جوتاشيلد تيكس ميديم",
+      "en": "Jotashield Tex Medium",
+      "d": "مظهر عصري مع تغطية متقدمة لتشققات الأسطح.",
+      "f": [
+        "مظهر عصري",
+        "تغطية التشققات"
+      ],
+      "img": 109981,
+      "price": null,
+      "u": "لتر",
+      "sizes": null,
+      "cov": 3.5,
+      "url": "exterior/all-exterior-products/jotashield-tex-medium",
+      "best": false,
+      "packs": [
+        {
+          "s": 10,
+          "u": "لتر",
+          "p": 2973
+        }
+      ]
+    },
+    {
+      "id": "js-tex-ultra",
+      "active": true,
+      "cat": "exterior",
+      "line": "Jotashield Tex",
+      "ar": "جوتاشيلد تيكس ألترا",
+      "en": "Jotashield Tex Ultra",
+      "d": "دهان خارجي متين للغاية بمظهر قشر البرتقال وأعلى حماية ضد التصدعات.",
+      "f": [
+        "متين جداً",
+        "ضد التصدعات"
+      ],
+      "img": 220572,
+      "price": null,
+      "u": "لتر",
+      "sizes": null,
+      "cov": 3,
+      "url": "exterior/all-exterior-products/jotashield-tex-ultra",
+      "best": false,
+      "packs": [
+        {
+          "s": 10,
+          "u": "لتر",
+          "p": 3390
+        }
+      ]
+    },
+    {
+      "id": "js-alkali-primer",
+      "active": true,
+      "cat": "prep",
+      "line": "Jotashield",
+      "ar": "جوتاشيلد برايمر مقاوم للقلوية",
+      "en": "Jotashield Alkali Resistant Primer",
+      "d": "برايمر خارجي عالي المقاومة للقلوية يساعد في تقوية الخرسانة.",
+      "f": [
+        "مقاوم للقلوية",
+        "يقوي الخرسانة"
+      ],
+      "img": 199487,
+      "price": null,
+      "u": "لتر",
+      "sizes": null,
+      "cov": 10,
+      "url": "exterior/all-exterior-products/jotashield-alkali-resistant-primer",
+      "best": false,
+      "packs": [
+        {
+          "s": 10,
+          "u": "لتر",
+          "p": 1070
+        },
+        {
+          "s": 20,
+          "u": "لتر",
+          "p": 2077
+        }
+      ]
+    },
+    {
+      "id": "pva-primer",
+      "active": true,
+      "cat": "prep",
+      "line": "Jotun",
+      "ar": "بي في إيه برايمر",
+      "en": "Jotun PVA Primer",
+      "d": "برايمر مائي (بادئ) يغلق المسام ويثبت الأسطح الداخلية قبل الدهان.",
+      "f": [
+        "يغلق المسام",
+        "يثبت الأسطح"
+      ],
+      "img": null,
+      "col": "#8fa3b5",
+      "price": null,
+      "u": "لتر",
+      "sizes": null,
+      "cov": 12,
+      "url": null,
+      "best": false,
+      "packs": [
+        {
+          "s": 9,
+          "u": "لتر",
+          "p": 506
+        },
+        {
+          "s": 20,
+          "u": "لتر",
+          "p": 1095
+        }
+      ]
+    },
+    {
+      "id": "emulsion-primer",
+      "active": true,
+      "cat": "prep",
+      "line": "Fenomastic",
+      "ar": "فينوماستيك برايمر",
+      "en": "Fenomastic Primer",
+      "d": "برايمر مائي (بادئ) يجهز الجدران الداخلية لاستقبال الدهان النهائي بثبات وتغطية مثالية.",
+      "f": [
+        "برايمر مائي",
+        "داخلي"
+      ],
+      "img": null,
+      "col": "#a7b8a0",
+      "price": null,
+      "u": "لتر",
+      "sizes": null,
+      "cov": 12,
+      "url": null,
+      "best": false,
+      "packs": [
+        {
+          "s": 9,
+          "u": "لتر",
+          "p": 692
+        },
+        {
+          "s": 20,
+          "u": "لتر",
+          "p": 1495
+        }
+      ]
+    },
+    {
+      "id": "putty",
+      "active": true,
+      "cat": "prep",
+      "line": "Jotun",
+      "ar": "جوتا معجون تنعيم",
+      "en": "Jotun Putty",
+      "d": "معجون يسوّي الجدران ويعالج العيوب للحصول على سطح أملس.",
+      "f": [
+        "تنعيم",
+        "يعالج العيوب"
+      ],
+      "img": null,
+      "col": "#c9bfae",
+      "price": 65,
+      "u": "كجم",
+      "sizes": null,
+      "cov": 1.2,
+      "url": null,
+      "best": false
+    },
+    {
+      "id": "epoxy",
+      "active": true,
+      "cat": "industrial",
+      "line": "Protective",
+      "ar": "طلاء إيبوكسي للأرضيات",
+      "en": "Jotacoat Epoxy",
+      "d": "إيبوكسي عالي الأداء للأرضيات الصناعية، يقاوم الكيماويات والاحتكاك.",
+      "f": [
+        "مقاوم للكيماويات",
+        "مقاوم للاحتكاك"
+      ],
+      "img": null,
+      "col": "#4a5562",
+      "price": 290,
+      "u": "لتر",
+      "sizes": null,
+      "cov": 6,
+      "url": null,
+      "best": false,
+      "floor": true
+    },
+    {
+      "id": "barrier",
+      "active": true,
+      "cat": "industrial",
+      "line": "Protective",
+      "ar": "برايمر Barrier مضاد للتآكل",
+      "en": "Barrier Primer",
+      "d": "برايمر زنك إيبوكسي للهياكل المعدنية، حماية طويلة ضد الصدأ.",
+      "f": [
+        "مضاد للتآكل",
+        "ضد الصدأ"
+      ],
+      "img": null,
+      "col": "#6d7680",
+      "price": 310,
+      "u": "لتر",
+      "sizes": null,
+      "cov": 7,
+      "url": null,
+      "best": false
+    },
+    {
+      "id": "alkyd",
+      "active": true,
+      "cat": "prep",
+      "line": "Jotun",
+      "ar": "ألكيد رد أندركوت",
+      "en": "Alkyd Red Undercoat",
+      "d": "برايمر زيتي (ألكيد) أحمر للأسطح المعدنية والخشبية قبل الدهان الزيتي.",
+      "f": [
+        "برايمر زيتي",
+        "للمعادن والأخشاب"
+      ],
+      "img": null,
+      "col": "#9a3b2e",
+      "price": null,
+      "u": "لتر",
+      "sizes": null,
+      "cov": 9,
+      "url": null,
+      "best": false,
+      "packs": [
+        {
+          "s": 0.75,
+          "u": "لتر",
+          "p": 219
+        },
+        {
+          "s": 3,
+          "u": "لتر",
+          "p": 846
+        },
+        {
+          "s": 10,
+          "u": "لتر",
+          "p": 2735
+        }
+      ]
+    },
+    {
+      "id": "jotafloor",
+      "active": true,
+      "cat": "industrial",
+      "line": "Protective",
+      "ar": "جوتافلور لأرضيات الورش",
+      "en": "Jotafloor",
+      "d": "نظام أرضيات للمستودعات والمصانع يتحمل الأحمال والمركبات.",
+      "f": [
+        "يتحمل الأحمال",
+        "مقاوم للخدش"
+      ],
+      "img": null,
+      "col": "#3f6b52",
+      "price": 270,
+      "u": "لتر",
+      "sizes": null,
+      "cov": 6,
+      "url": null,
+      "best": false,
+      "floor": true
+    },
+    {
+      "active": true,
+      "f": [
+        "لأعمدة الإنارة",
+        "للعلامات المعدنية"
+      ],
+      "img": null,
+      "u": "لتر",
+      "url": null,
+      "best": false,
+      "price": null,
+      "sizes": null,
+      "id": "bengalac-aluminium",
+      "cat": "industrial",
+      "line": "Jotun",
+      "ar": "بنجالاك ألومنيوم",
+      "en": "Bengalac Aluminium",
+      "d": "دهان ألومنيوم لأعمدة الإنارة والعلامات والأسطح المعدنية.",
+      "col": "#9aa3ab",
+      "cov": 10,
+      "packs": [
+        {
+          "s": 0.75,
+          "u": "لتر",
+          "p": 380
+        },
+        {
+          "s": 3,
+          "u": "لتر",
+          "p": 1477
+        },
+        {
+          "s": 9,
+          "u": "لتر",
+          "p": 4301
+        }
+      ]
+    },
+    {
+      "active": true,
+      "f": [
+        "معجون مائي",
+        "تنعيم الأسطح"
+      ],
+      "img": null,
+      "u": "كجم",
+      "url": null,
+      "best": false,
+      "price": null,
+      "sizes": null,
+      "id": "jotun-stucco",
+      "cat": "prep",
+      "line": "Jotun",
+      "ar": "ستوكو – معجون مائي",
+      "en": "Jotun Stucco",
+      "d": "معجون ذو أساس مائي لتسوية الجدران الداخلية ومعالجة العيوب قبل الدهان.",
+      "col": "#e8a33d",
+      "cov": 1.2,
+      "packs": [
+        {
+          "s": 2.7,
+          "u": "لتر",
+          "p": 155
+        },
+        {
+          "s": 15,
+          "u": "كجم",
+          "p": 466
+        },
+        {
+          "s": 20,
+          "u": "لتر",
+          "p": 1085
+        }
+      ]
+    },
+    {
+      "active": true,
+      "f": [
+        "معجون مائي",
+        "تجهيز الأسطح"
+      ],
+      "img": null,
+      "u": "كجم",
+      "url": null,
+      "best": false,
+      "price": null,
+      "sizes": null,
+      "id": "jotun-prefix",
+      "cat": "prep",
+      "line": "Jotun",
+      "ar": "بريفيكس – معجون مائي",
+      "en": "Jotun Prefix",
+      "d": "معجون ذو أساس مائي لتجهيز وتسوية الأسطح الداخلية.",
+      "col": "#e8a33d",
+      "cov": 1.2,
+      "packs": [
+        {
+          "s": 14,
+          "u": "كجم",
+          "p": 324
+        },
+        {
+          "s": 18,
+          "u": "لتر",
+          "p": 756
+        }
+      ]
+    },
+    {
+      "active": true,
+      "f": [
+        "طبقة نهائية",
+        "أبيض"
+      ],
+      "img": null,
+      "u": "لتر",
+      "url": null,
+      "best": false,
+      "price": null,
+      "sizes": null,
+      "id": "julifix-white",
+      "cat": "interior",
+      "line": "Jotun",
+      "ar": "جوليفكس – أبيض",
+      "en": "Jotun Julifix",
+      "d": "دهان بلاستيك (طبقة نهائية) للجدران والأسقف الداخلية باللون الأبيض.",
+      "col": "#d9d9d6",
+      "cov": 10,
+      "packs": [
+        {
+          "s": 9,
+          "u": "لتر",
+          "p": 855
+        },
+        {
+          "s": 20,
+          "u": "لتر",
+          "p": 1842
+        }
+      ]
+    },
+    {
+      "active": true,
+      "f": [
+        "دهان مائي",
+        "أبيض"
+      ],
+      "img": null,
+      "u": "لتر",
+      "url": null,
+      "best": false,
+      "price": null,
+      "sizes": null,
+      "id": "durosan-action-pro",
+      "cat": "interior",
+      "line": "Durosan",
+      "ar": "ديوروسان أكشن برو – أبيض",
+      "en": "Durosan Action Pro",
+      "d": "دهان مائي داخلي من عائلة ديوروسان أكشن باللون الأبيض.",
+      "col": "#7aa6c2",
+      "cov": 10,
+      "isNew": true,
+      "packs": [
+        {
+          "s": 2.5,
+          "u": "لتر",
+          "p": 411
+        },
+        {
+          "s": 9,
+          "u": "لتر",
+          "p": 1437
+        }
+      ]
+    },
+    {
+      "active": true,
+      "f": [
+        "نصف لامع",
+        "دهان مائي"
+      ],
+      "img": null,
+      "u": "لتر",
+      "url": null,
+      "best": false,
+      "price": null,
+      "sizes": null,
+      "id": "durosan-action-semigloss",
+      "cat": "interior",
+      "line": "Durosan",
+      "ar": "ديوروسان أكشن سيمي جلوسي",
+      "en": "Durosan Action Semi Gloss",
+      "d": "دهان مائي داخلي نصف لامع من عائلة ديوروسان أكشن.",
+      "col": "#7aa6c2",
+      "cov": 10,
+      "packs": [
+        {
+          "s": 3,
+          "u": "لتر",
+          "p": 654
+        },
+        {
+          "s": 9,
+          "u": "لتر",
+          "p": 1902
+        }
+      ]
+    },
+    {
+      "active": true,
+      "f": [
+        "حريري",
+        "دهان مائي"
+      ],
+      "img": null,
+      "u": "لتر",
+      "url": null,
+      "best": false,
+      "price": null,
+      "sizes": null,
+      "id": "durosan-silk",
+      "cat": "interior",
+      "line": "Durosan",
+      "ar": "ديوروسان داخلي سيلك",
+      "en": "Durosan Interior Silk",
+      "d": "دهان مائي داخلي بلمسة حريرية من عائلة ديوروسان.",
+      "col": "#7aa6c2",
+      "cov": 10,
+      "packs": [
+        {
+          "s": 2.25,
+          "u": "لتر",
+          "p": 465
+        },
+        {
+          "s": 9,
+          "u": "لتر",
+          "p": 1629
+        }
+      ]
+    },
+    {
+      "active": true,
+      "f": [
+        "مطفي",
+        "اقتصادي"
+      ],
+      "img": null,
+      "u": "لتر",
+      "url": null,
+      "best": false,
+      "price": null,
+      "sizes": null,
+      "id": "durosan-matt",
+      "cat": "interior",
+      "line": "Durosan",
+      "ar": "ديوروسان داخلي مط",
+      "en": "Durosan Interior Matt",
+      "d": "دهان مائي داخلي مطفي اقتصادي من عائلة ديوروسان.",
+      "col": "#7aa6c2",
+      "cov": 10,
+      "packs": [
+        {
+          "s": 2.5,
+          "u": "لتر",
+          "p": 311
+        },
+        {
+          "s": 9,
+          "u": "لتر",
+          "p": 1087
+        }
+      ]
+    },
+    {
+      "active": true,
+      "f": [
+        "إنامل",
+        "مطفي"
+      ],
+      "img": null,
+      "u": "لتر",
+      "url": null,
+      "best": false,
+      "price": null,
+      "sizes": null,
+      "id": "durosan-enamel-matt",
+      "cat": "interior",
+      "line": "Durosan",
+      "ar": "ديوروسان إنامل مط",
+      "en": "Durosan Enamel Matt",
+      "d": "دهان إنامل مطفي من عائلة ديوروسان للأخشاب والمعادن والجدران.",
+      "col": "#7aa6c2",
+      "cov": 12,
+      "packs": [
+        {
+          "s": 0.7,
+          "u": "لتر",
+          "p": 279
+        },
+        {
+          "s": 2.15,
+          "u": "لتر",
+          "p": 836
+        },
+        {
+          "s": 9,
+          "u": "لتر",
+          "p": 3496
+        }
+      ]
+    },
+    {
+      "active": true,
+      "f": [
+        "إنامل",
+        "لامع"
+      ],
+      "img": null,
+      "u": "لتر",
+      "url": null,
+      "best": false,
+      "price": null,
+      "sizes": null,
+      "id": "durosan-enamel-gloss",
+      "cat": "interior",
+      "line": "Durosan",
+      "ar": "ديوروسان إنامل جلوس",
+      "en": "Durosan Enamel Gloss",
+      "d": "دهان إنامل لامع من عائلة ديوروسان للأخشاب والمعادن.",
+      "col": "#7aa6c2",
+      "cov": 12,
+      "packs": [
+        {
+          "s": 0.7,
+          "u": "لتر",
+          "p": 353
+        },
+        {
+          "s": 2.1,
+          "u": "لتر",
+          "p": 1030
+        }
+      ]
+    },
+    {
+      "active": true,
+      "f": [
+        "مطفي",
+        "ألوان ناصعة"
+      ],
+      "img": null,
+      "u": "لتر",
+      "url": null,
+      "best": false,
+      "price": null,
+      "sizes": null,
+      "id": "pure-colours-matt",
+      "cat": "interior",
+      "line": "Fenomastic",
+      "ar": "فينوماستيك ألوان ناصعة إيملشن مط",
+      "en": "Fenomastic Pure Colours Emulsion Matt",
+      "d": "دهان داخلي مطفي بألوان نقية ثابتة من عائلة فينوماستيك.",
+      "col": "#c8102e",
+      "cov": 11,
+      "packs": [
+        {
+          "s": 3,
+          "u": "لتر",
+          "p": 827
+        },
+        {
+          "s": 9,
+          "u": "لتر",
+          "p": 2408
+        }
+      ]
+    },
+    {
+      "active": true,
+      "f": [
+        "نصف لامع",
+        "ألوان ناصعة"
+      ],
+      "img": null,
+      "u": "لتر",
+      "url": null,
+      "best": false,
+      "price": null,
+      "sizes": null,
+      "id": "pure-colours-semigloss",
+      "cat": "interior",
+      "line": "Fenomastic",
+      "ar": "فينوماستيك ألوان ناصعة إيملشن سيمي جلوس",
+      "en": "Fenomastic Pure Colours Emulsion Semi Gloss",
+      "d": "دهان داخلي نصف لامع بألوان نقية ثابتة من عائلة فينوماستيك.",
+      "col": "#c8102e",
+      "cov": 11,
+      "packs": [
+        {
+          "s": 3,
+          "u": "لتر",
+          "p": 991
+        },
+        {
+          "s": 9,
+          "u": "لتر",
+          "p": 2884
+        }
+      ]
+    },
+    {
+      "active": true,
+      "f": [
+        "إنامل",
+        "مطفي"
+      ],
+      "img": null,
+      "u": "لتر",
+      "url": null,
+      "best": false,
+      "price": null,
+      "sizes": null,
+      "id": "fenomastic-enamel-matt",
+      "cat": "interior",
+      "line": "Fenomastic",
+      "ar": "فينوماستيك إنامل مط",
+      "en": "Fenomastic Enamel Matt",
+      "d": "إنامل داخلي مطفي عالي الجودة من عائلة فينوماستيك.",
+      "col": "#0b2a4a",
+      "cov": 12,
+      "packs": [
+        {
+          "s": 0.9,
+          "u": "لتر",
+          "p": 619
+        },
+        {
+          "s": 3,
+          "u": "لتر",
+          "p": 1799
+        },
+        {
+          "s": 9,
+          "u": "لتر",
+          "p": 5824
+        }
+      ]
+    },
+    {
+      "active": true,
+      "f": [
+        "إنامل",
+        "نصف لامع"
+      ],
+      "img": null,
+      "u": "لتر",
+      "url": null,
+      "best": false,
+      "price": null,
+      "sizes": null,
+      "id": "fenomastic-enamel-semigloss",
+      "cat": "interior",
+      "line": "Fenomastic",
+      "ar": "فينوماستيك إنامل سيمي جلوس",
+      "en": "Fenomastic Enamel Semi Gloss",
+      "d": "إنامل داخلي نصف لامع عالي الجودة من عائلة فينوماستيك.",
+      "col": "#0b2a4a",
+      "cov": 12,
+      "packs": [
+        {
+          "s": 0.9,
+          "u": "لتر",
+          "p": 581
+        },
+        {
+          "s": 3,
+          "u": "لتر",
+          "p": 1693
+        },
+        {
+          "s": 9,
+          "u": "لتر",
+          "p": 5479
+        }
+      ]
+    },
+    {
+      "active": true,
+      "f": [
+        "إنامل",
+        "لامع"
+      ],
+      "img": null,
+      "u": "لتر",
+      "url": null,
+      "best": false,
+      "price": null,
+      "sizes": null,
+      "id": "fenomastic-enamel-gloss",
+      "cat": "interior",
+      "line": "Fenomastic",
+      "ar": "فينوماستيك إنامل جلوس",
+      "en": "Fenomastic Enamel Gloss",
+      "d": "إنامل داخلي لامع عالي الجودة من عائلة فينوماستيك.",
+      "col": "#0b2a4a",
+      "cov": 12,
+      "packs": [
+        {
+          "s": 0.9,
+          "u": "لتر",
+          "p": 607
+        },
+        {
+          "s": 3,
+          "u": "لتر",
+          "p": 1769
+        },
+        {
+          "s": 9,
+          "u": "لتر",
+          "p": 5158
+        }
+      ]
+    },
+    {
+      "active": true,
+      "f": [
+        "ملمس معدني",
+        "تأثير ديكوري"
+      ],
+      "img": null,
+      "u": "لتر",
+      "url": null,
+      "best": false,
+      "price": null,
+      "sizes": null,
+      "id": "ld-metallic-sand",
+      "cat": "deco",
+      "line": "Lady Design",
+      "ar": "تصميمات ليدي ميتلك ساند",
+      "en": "Lady Design Metallic Sand",
+      "d": "تأثير ديكوري بمظهر وملمس معدني رملي.",
+      "col": "#a8875f",
+      "cov": 6,
+      "packs": [
+        {
+          "s": 0.9,
+          "u": "لتر",
+          "p": 1266
+        }
+      ]
+    },
+    {
+      "active": true,
+      "f": [
+        "برايمر مذيب",
+        "يقوي الأسطح"
+      ],
+      "img": null,
+      "u": "لتر",
+      "url": null,
+      "best": false,
+      "price": null,
+      "sizes": null,
+      "id": "penetrating-sealer",
+      "cat": "prep",
+      "line": "Jotun",
+      "ar": "جوتن بنتريتنج سيلر",
+      "en": "Jotun Penetrating Sealer",
+      "d": "برايمر ذو أساس مذيب يتغلغل في الأسطح ويقويها قبل الدهان.",
+      "col": "#d39b2a",
+      "cov": 10,
+      "packs": [
+        {
+          "s": 0.9,
+          "u": "لتر",
+          "p": 362
+        },
+        {
+          "s": 3,
+          "u": "لتر",
+          "p": 1112
+        },
+        {
+          "s": 20,
+          "u": "لتر",
+          "p": 7060
+        }
+      ]
+    },
+    {
+      "active": true,
+      "f": [
+        "للأسطح الخارجية",
+        "سد المسام"
+      ],
+      "img": null,
+      "u": "كجم",
+      "url": null,
+      "best": false,
+      "price": null,
+      "sizes": null,
+      "id": "block-filler",
+      "cat": "prep",
+      "line": "Jotun",
+      "ar": "جوتن بلوك فيلر",
+      "en": "Jotun Block Filler",
+      "d": "معجون مخصص لتجهيز الأسطح الخارجية وسد مسام الطوب والبلوك.",
+      "col": "#e8a33d",
+      "cov": 1.5,
+      "packs": [
+        {
+          "s": 15,
+          "u": "كجم",
+          "p": 563
+        },
+        {
+          "s": 20,
+          "u": "لتر",
+          "p": 1285
+        }
+      ]
+    },
+    {
+      "active": true,
+      "f": [
+        "معجون مطاطي",
+        "علاج الشروخ"
+      ],
+      "img": null,
+      "u": "لتر",
+      "url": null,
+      "best": false,
+      "price": null,
+      "sizes": null,
+      "id": "crack-fix",
+      "cat": "prep",
+      "line": "Jotun",
+      "ar": "كراك فيكس",
+      "en": "Jotun Crack Fix",
+      "d": "معجون شروخ مطاطي لمعالجة الشروخ قبل الدهان.",
+      "col": "#c94b4b",
+      "cov": 2,
+      "packs": [
+        {
+          "s": 1,
+          "u": "لتر",
+          "p": 264
+        },
+        {
+          "s": 3,
+          "u": "لتر",
+          "p": 780
+        }
+      ]
+    },
+    {
+      "active": true,
+      "f": [
+        "طبقة زخرفية",
+        "قابل للرش"
+      ],
+      "img": null,
+      "u": "لتر",
+      "url": null,
+      "best": false,
+      "price": null,
+      "sizes": null,
+      "id": "texo-compound",
+      "cat": "exterior",
+      "line": "Jotun",
+      "ar": "جوتن تكسو كمبوند – أبيض",
+      "en": "Jotun Texo Compound",
+      "d": "طبقة زخرفية خارجية قابلة للرش باللون الأبيض.",
+      "col": "#e8a33d",
+      "cov": 3,
+      "packs": [
+        {
+          "s": 9,
+          "u": "لتر",
+          "p": 757
+        },
+        {
+          "s": 20,
+          "u": "لتر",
+          "p": 1632
+        }
+      ]
+    },
+    {
+      "active": true,
+      "f": [
+        "خارجي ناعم",
+        "مطفي"
+      ],
+      "img": null,
+      "u": "لتر",
+      "url": null,
+      "best": false,
+      "price": null,
+      "sizes": null,
+      "id": "easycoat-plus-matt",
+      "cat": "exterior",
+      "line": "Easycoat",
+      "ar": "إيزي كوت بلس مط – أبيض",
+      "en": "Easycoat Plus Matt",
+      "d": "دهان مائي ناعم للأسطح الخارجية، مطفي، باللون الأبيض.",
+      "col": "#2b2b2b",
+      "cov": 9,
+      "packs": [
+        {
+          "s": 9,
+          "u": "لتر",
+          "p": 1529
+        }
+      ]
+    },
+    {
+      "active": true,
+      "f": [
+        "خارجي ناعم",
+        "حريري"
+      ],
+      "img": null,
+      "u": "لتر",
+      "url": null,
+      "best": false,
+      "price": null,
+      "sizes": null,
+      "id": "easycoat-plus-silk",
+      "cat": "exterior",
+      "line": "Easycoat",
+      "ar": "إيزي كوت بلس سيلك – أبيض",
+      "en": "Easycoat Plus Silk",
+      "d": "دهان مائي ناعم للأسطح الخارجية بلمسة حريرية، باللون الأبيض.",
+      "col": "#2b2b2b",
+      "cov": 9,
+      "packs": [
+        {
+          "s": 10,
+          "u": "لتر",
+          "p": 1841
+        }
+      ]
+    },
+    {
+      "active": true,
+      "f": [
+        "زخرفي",
+        "ملمس ناعم"
+      ],
+      "img": null,
+      "u": "لتر",
+      "url": null,
+      "best": false,
+      "price": null,
+      "sizes": null,
+      "id": "easycoat-finotex",
+      "cat": "exterior",
+      "line": "Easycoat",
+      "ar": "إيزي كوت فينوتكس – أبيض",
+      "en": "Easycoat Finotex",
+      "d": "دهان مائي زخرفي للأسطح الخارجية بملمس ناعم.",
+      "col": "#2b2b2b",
+      "cov": 4,
+      "packs": [
+        {
+          "s": 10,
+          "u": "لتر",
+          "p": 1493
+        }
+      ]
+    },
+    {
+      "active": true,
+      "f": [
+        "زخرفي",
+        "خارجي"
+      ],
+      "img": null,
+      "u": "لتر",
+      "url": null,
+      "best": false,
+      "price": null,
+      "sizes": null,
+      "id": "easycoat-protex-fine",
+      "cat": "exterior",
+      "line": "Easycoat",
+      "ar": "إيزي كوت بروتكس فاين",
+      "en": "Easycoat Protex Fine",
+      "d": "دهان مائي زخرفي للأسطح الخارجية بملمس ناعم.",
+      "col": "#2b2b2b",
+      "cov": 4,
+      "isNew": true,
+      "packs": [
+        {
+          "s": 20,
+          "u": "لتر",
+          "p": 2404,
+          "v": "أبيض"
+        },
+        {
+          "s": 20,
+          "u": "لتر",
+          "p": 2597,
+          "v": "ألوان خاصة"
+        }
+      ]
+    },
+    {
+      "active": true,
+      "f": [
+        "زخرفي",
+        "ملمس متوسط"
+      ],
+      "img": null,
+      "u": "لتر",
+      "url": null,
+      "best": false,
+      "price": null,
+      "sizes": null,
+      "id": "easycoat-medium-tex",
+      "cat": "exterior",
+      "line": "Easycoat",
+      "ar": "إيزي كوت ميديم تكس",
+      "en": "Easycoat Medium Tex",
+      "d": "دهان مائي زخرفي للأسطح الخارجية بملمس متوسط.",
+      "col": "#2b2b2b",
+      "cov": 3.5,
+      "packs": [
+        {
+          "s": 20,
+          "u": "لتر",
+          "p": 2667,
+          "v": "أبيض"
+        },
+        {
+          "s": 20,
+          "u": "لتر",
+          "p": 2880,
+          "v": "ألوان خاصة"
+        },
+        {
+          "s": 20,
+          "u": "لتر",
+          "p": 2667,
+          "v": "ألوان جاهزة"
+        }
+      ]
+    },
+    {
+      "active": true,
+      "f": [
+        "زخرفي",
+        "ملمس خشن"
+      ],
+      "img": null,
+      "u": "لتر",
+      "url": null,
+      "best": false,
+      "price": null,
+      "sizes": null,
+      "id": "easycoat-hevitex",
+      "cat": "exterior",
+      "line": "Easycoat",
+      "ar": "إيزي كوت هيفيتكس",
+      "en": "Easycoat Hevitex",
+      "d": "دهان مائي زخرفي للأسطح الخارجية بملمس خشن.",
+      "col": "#2b2b2b",
+      "cov": 3,
+      "packs": [
+        {
+          "s": 10,
+          "u": "لتر",
+          "p": 1167,
+          "v": "أبيض"
+        },
+        {
+          "s": 20,
+          "u": "لتر",
+          "p": 2267,
+          "v": "أبيض"
+        },
+        {
+          "s": 10,
+          "u": "لتر",
+          "p": 1260,
+          "v": "ألوان خاصة"
+        },
+        {
+          "s": 20,
+          "u": "لتر",
+          "p": 2448,
+          "v": "ألوان خاصة"
+        }
+      ]
+    },
+    {
+      "active": true,
+      "f": [
+        "زخرفي",
+        "خارجي"
+      ],
+      "img": null,
+      "u": "لتر",
+      "url": null,
+      "best": false,
+      "price": null,
+      "sizes": null,
+      "id": "easycoat-profile-decor",
+      "cat": "exterior",
+      "line": "Easycoat",
+      "ar": "إيزي كوت بروفيل ديكور",
+      "en": "Easycoat Profile Decor",
+      "d": "دهان مائي زخرفي للأسطح الخارجية.",
+      "col": "#2b2b2b",
+      "cov": 3,
+      "packs": [
+        {
+          "s": 10,
+          "u": "لتر",
+          "p": 1314,
+          "v": "أبيض"
+        },
+        {
+          "s": 20,
+          "u": "لتر",
+          "p": 2435,
+          "v": "أبيض"
+        },
+        {
+          "s": 10,
+          "u": "لتر",
+          "p": 1419,
+          "v": "ألوان خاصة"
+        },
+        {
+          "s": 20,
+          "u": "لتر",
+          "p": 2630,
+          "v": "ألوان خاصة"
+        }
+      ]
+    },
+    {
+      "active": true,
+      "f": [
+        "خارجي",
+        "جديد"
+      ],
+      "img": null,
+      "u": "لتر",
+      "url": null,
+      "best": false,
+      "price": null,
+      "sizes": null,
+      "id": "js-kanva",
+      "cat": "exterior",
+      "line": "Jotashield",
+      "ar": "جوتاشيلد كانڤا",
+      "en": "Jotashield Kanva",
+      "d": "دهان خارجي جديد من عائلة جوتاشيلد.",
+      "col": "#1b3a6b",
+      "cov": 9,
+      "isNew": true,
+      "packs": [
+        {
+          "s": 10,
+          "u": "لتر",
+          "p": 2524
+        }
+      ]
+    },
+    {
+      "active": true,
+      "f": [
+        "مضاد للكربنة",
+        "مواقف السيارات"
+      ],
+      "img": null,
+      "u": "لتر",
+      "url": null,
+      "best": false,
+      "price": null,
+      "sizes": null,
+      "id": "js-carbo-matt",
+      "cat": "exterior",
+      "line": "Jotashield",
+      "ar": "جوتاشيلد كاربو مط",
+      "en": "Jotashield Carbo Matt",
+      "d": "دهان مائي ناعم مضاد للكربنة، مخصص لمواقف السيارات المغلقة.",
+      "col": "#1b3a6b",
+      "cov": 9,
+      "packs": [
+        {
+          "s": 10,
+          "u": "لتر",
+          "p": 2576
+        }
+      ]
+    },
+    {
+      "active": true,
+      "f": [
+        "مضاد للكربنة",
+        "حريري"
+      ],
+      "img": null,
+      "u": "لتر",
+      "url": null,
+      "best": false,
+      "price": null,
+      "sizes": null,
+      "id": "js-carbo-silk",
+      "cat": "exterior",
+      "line": "Jotashield",
+      "ar": "جوتاشيلد كاربو سيلك",
+      "en": "Jotashield Carbo Silk",
+      "d": "دهان مائي ناعم حريري مضاد للكربنة، مخصص لمواقف السيارات المغلقة.",
+      "col": "#1b3a6b",
+      "cov": 9,
+      "packs": [
+        {
+          "s": 10,
+          "u": "لتر",
+          "p": 2640
+        }
+      ]
+    },
+    {
+      "active": true,
+      "f": [
+        "جليز",
+        "ديكوري"
+      ],
+      "img": null,
+      "u": "لتر",
+      "url": null,
+      "best": false,
+      "price": null,
+      "sizes": null,
+      "id": "js-decor-glaze",
+      "cat": "exterior",
+      "line": "Jotashield Decor",
+      "ar": "جوتاشيلد ديكور جليز",
+      "en": "Jotashield Decor Glaze",
+      "d": "طبقة جليز ديكورية للواجهات من عائلة جوتاشيلد ديكور.",
+      "col": "#1b3a6b",
+      "cov": 10,
+      "packs": [
+        {
+          "s": 2.7,
+          "u": "لتر",
+          "p": 982
+        }
+      ]
+    },
+    {
+      "active": true,
+      "f": [
+        "مخفف"
+      ],
+      "img": null,
+      "u": "لتر",
+      "url": null,
+      "best": false,
+      "price": null,
+      "sizes": null,
+      "id": "js-decor-glaze-thinner",
+      "cat": "exterior",
+      "line": "Jotashield Decor",
+      "ar": "جوتاشيلد ديكور جليز تنر",
+      "en": "Jotashield Decor Glaze Thinner",
+      "d": "مخفف خاص لجوتاشيلد ديكور جليز.",
+      "col": "#8a8f96",
+      "cov": 10,
+      "packs": [
+        {
+          "s": 2.7,
+          "u": "لتر",
+          "p": 157
+        }
+      ]
+    },
+    {
+      "active": true,
+      "f": [
+        "صبغة أخشاب",
+        "داخلي"
+      ],
+      "img": null,
+      "u": "لتر",
+      "url": null,
+      "best": false,
+      "price": null,
+      "sizes": null,
+      "id": "woodshield-stain-int",
+      "cat": "wood",
+      "line": "Woodshield",
+      "ar": "صبغة وود شيلد داخلي مط/لامع",
+      "en": "Woodshield Interior Stain",
+      "d": "صبغة للأخشاب الداخلية بتشطيب مطفي أو لامع.",
+      "col": "#7a4b2a",
+      "cov": 12,
+      "packs": [
+        {
+          "s": 0.9,
+          "u": "لتر",
+          "p": 599
+        },
+        {
+          "s": 2.7,
+          "u": "لتر",
+          "p": 1852
+        }
+      ]
+    },
+    {
+      "active": true,
+      "f": [
+        "صبغة أخشاب",
+        "خارجي"
+      ],
+      "img": null,
+      "u": "لتر",
+      "url": null,
+      "best": false,
+      "price": null,
+      "sizes": null,
+      "id": "woodshield-stain-ext",
+      "cat": "wood",
+      "line": "Woodshield",
+      "ar": "صبغة وود شيلد خارجي مط/لامع",
+      "en": "Woodshield Exterior Stain",
+      "d": "صبغة للأخشاب الخارجية بتشطيب مطفي أو لامع.",
+      "col": "#7a4b2a",
+      "cov": 12,
+      "packs": [
+        {
+          "s": 0.9,
+          "u": "لتر",
+          "p": 646
+        },
+        {
+          "s": 2.7,
+          "u": "لتر",
+          "p": 1995
+        }
+      ]
+    },
+    {
+      "active": true,
+      "f": [
+        "ورنيش",
+        "داخلي"
+      ],
+      "img": null,
+      "u": "لتر",
+      "url": null,
+      "best": false,
+      "price": null,
+      "sizes": null,
+      "id": "woodshield-varnish-int",
+      "cat": "wood",
+      "line": "Woodshield",
+      "ar": "ورنيش وود شيلد داخلي مط/لامع",
+      "en": "Woodshield Interior Varnish",
+      "d": "ورنيش شفاف لحماية الأخشاب الداخلية بتشطيب مطفي أو لامع.",
+      "col": "#a0703c",
+      "cov": 12,
+      "packs": [
+        {
+          "s": 1,
+          "u": "لتر",
+          "p": 654
+        },
+        {
+          "s": 3,
+          "u": "لتر",
+          "p": 2022
+        }
+      ]
+    },
+    {
+      "active": true,
+      "f": [
+        "ورنيش",
+        "خارجي"
+      ],
+      "img": null,
+      "u": "لتر",
+      "url": null,
+      "best": false,
+      "price": null,
+      "sizes": null,
+      "id": "woodshield-varnish-ext",
+      "cat": "wood",
+      "line": "Woodshield",
+      "ar": "ورنيش وود شيلد خارجي مط/لامع",
+      "en": "Woodshield Exterior Varnish",
+      "d": "ورنيش شفاف لحماية الأخشاب الخارجية بتشطيب مطفي أو لامع.",
+      "col": "#a0703c",
+      "cov": 12,
+      "packs": [
+        {
+          "s": 1,
+          "u": "لتر",
+          "p": 725
+        },
+        {
+          "s": 3,
+          "u": "لتر",
+          "p": 2240
+        }
+      ]
+    }
+  ],
+  "packages": [
+    {
+      "id": "basic",
+      "active": true,
+      "name": "باقة بيتي",
+      "tag": "اقتصادية",
+      "product": "myhome-rich-matt",
+      "primer": "pva-primer",
+      "coats": 2,
+      "laborPerM2": null,
+      "includes": [
+        "معاينة وقياس مجاني",
+        "معجون ونعلجة العيوب البسيطة",
+        "برايمر + طبقتين فينوماستيك بيتي مطفي غني",
+        "مزج الألوان بالكمبيوتر"
+      ]
+    },
+    {
+      "id": "premium",
+      "active": true,
+      "name": "باقة مذهل",
+      "tag": "الأكثر طلباً",
+      "product": "wonderwall-life",
+      "primer": "pva-primer",
+      "coats": 2,
+      "laborPerM2": null,
+      "includes": [
+        "كل ما في باقة بيتي",
+        "فينوماستيك مذهل حياة – أعلى تحمل للغسل",
+        "استشارة ألوان مع مهندس ديكور",
+        "تنظيف الموقع بعد التنفيذ"
+      ]
+    },
+    {
+      "id": "luxury",
+      "active": true,
+      "name": "باقة ليدي الفاخرة",
+      "tag": "فاخرة",
+      "product": "wonderwall-lux",
+      "primer": "pva-primer",
+      "coats": 2,
+      "laborPerM2": null,
+      "accent": "ld-velvet",
+      "includes": [
+        "فينوماستيك مذهل راقي لكل الجدران",
+        "حائط مميز بتصميمات ليدي رويال فلفيت",
+        "استشارة ألوان وتنسيق إضاءة",
+        "ضمان على التنفيذ"
+      ]
+    }
+  ],
+  "reviews": [],
+  "discountCodes": [
+    {
+      "code": "MAQAWEL10",
+      "percent": 10,
+      "label": "خصم المقاولين",
+      "active": false
+    }
+  ],
+  "videos": [
+    {
+      "id": "vmwo8hl7z",
+      "active": true,
+      "date": "2026-11-20",
+      "type": "file",
+      "src": "assets/videos/whatsapp-video-2026-11-20-at-2-13-26-am-mwo8hl7n.mp4",
+      "title": "صصصصصصصصصصصصصصص",
+      "desc": "قققققققققققققققققققق",
+      "vertical": false
+    }
+  ]
+}
