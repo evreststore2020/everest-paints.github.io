@@ -10,6 +10,8 @@ const num = n => (+n).toLocaleString("ar-EG");
 const fmt = n => Math.round(n).toLocaleString("ar-EG") + " ج.م";
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const store = { get(k, d) { try { return JSON.parse(localStorage.getItem(k)) ?? d } catch (e) { return d } }, set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)) } catch (e) {} } };
+/* لو الزائر لسه ما سجّلش: المتجر بيبان مقفول من أول لحظة لحد ما شاشة التسجيل تظهر */
+{ const c = store.get("everest-customer", null); if (!(c && c.name && c.email && c.type) && !new URLSearchParams(location.search).has("preview")) document.documentElement.classList.add("cust-gate") }
 
 /* ---------- تحميل البيانات ---------- */
 let DATA;
@@ -548,36 +550,41 @@ if (PD && $("#pdBuy")) {
   draw();
 }
 
-/* ---------- حساب العميل: تسجيل الدخول بالاسم والإيميل (+ بيانات اختيارية) ---------- */
+/* ---------- حساب العميل: شاشة تسجيل إجبارية قبل فتح المتجر ---------- */
 (function () {
   const CK = "everest-customer", SEEN = "everest-customer-seen";
-  const CTYPES = ["فرد / صاحب بيت", "مقاول", "مهندس / مصمم ديكور", "شركة / محل"];
+  const CTYPES = ["عميل", "فني", "مهندس", "مقاول", "تاجر"];
   const CINT = ["دهانات داخلية", "دهانات خارجية", "ديكورات وتأثيرات", "دهانات أخشاب", "أرضيات وصناعي", "عزل"];
   const CSRC = ["فيسبوك", "إنستجرام", "تيك توك", "جوجل", "واتساب", "صديق / قريب", "عدّيت على المحل"];
-  const cartB = $("#openCart"); if (!cartB) return;
+  const cartB = $("#openCart");
   let ME = store.get(CK, null);
+  const ok = () => !!(ME && ME.name && ME.email && ME.type);
   const first = n => String(n || "").trim().split(/\s+/)[0];
-  cartB.insertAdjacentHTML("beforebegin", `<button class="acct-btn" id="acctBtn" type="button"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg><span class="lbl" id="acctLbl"></span><i class="acct-dot"></i></button>`);
+  if (cartB) cartB.insertAdjacentHTML("beforebegin", `<button class="acct-btn" id="acctBtn" type="button"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg><span class="lbl" id="acctLbl"></span><i class="acct-dot"></i></button>`);
   document.body.insertAdjacentHTML("beforeend", `<div class="amodal" id="aModal" hidden><div class="abox" role="dialog" aria-modal="true" aria-labelledby="aTitle"><button class="aclose" id="aClose" type="button" aria-label="إغلاق">✕</button><div id="aBody"></div></div></div>`);
   const btn = $("#acctBtn"), modal = $("#aModal");
-  const paint = () => { $("#acctLbl").textContent = ME ? "أهلاً " + first(ME.name) : "تسجيل الدخول"; btn.title = ME ? "حسابي: " + ME.name : "تسجيل الدخول"; btn.setAttribute("aria-label", btn.title); btn.classList.toggle("in", !!ME) };
+  let gated = false;
+  const paint = () => { if (!btn) return; $("#acctLbl").textContent = ok() ? "أهلاً " + first(ME.name) : "تسجيل الدخول"; btn.title = ok() ? "حسابي: " + ME.name : "تسجيل الدخول"; btn.setAttribute("aria-label", btn.title); btn.classList.toggle("in", ok()) };
   const opt = (list, v) => `<option value="">— اختار —</option>` + list.map(x => `<option ${x === v ? "selected" : ""}>${esc(x)}</option>`).join("");
   const form = () => {
-    const m = ME || {};
+    const m = ME || {}, edit = ok();
+    modal.classList.toggle("gate", gated);
     $("#aBody").innerHTML = `
-      <h3 id="aTitle">${ME ? "بياناتي" : "تسجيل الدخول"}</h3>
-      <p class="muted">${ME ? "تقدر تعدّل بياناتك في أي وقت." : "سجّل باسمك وإيميلك عشان نخدمك أسرع ونبعتلك العروض – ومش هتحتاج تكتب بياناتك تاني مع كل طلب."}</p>
+      ${gated ? `<div class="agate-brand"><img src="${BASE}assets/logo.svg" alt="" width="46" height="46" onerror="this.remove()"><div><b>إفرست للدهانات والديكور</b><small>وكيل جوتن المعتمد</small></div></div>` : ""}
+      <h3 id="aTitle">${edit ? "بياناتي" : gated ? "أهلاً بيك 👋 سجّل بياناتك للدخول" : "تسجيل الدخول"}</h3>
+      <p class="muted">${edit ? "تقدر تعدّل بياناتك في أي وقت." : "سجّل اسمك وإيميلك مرة واحدة بس عشان تدخل المتجر – ومش هتحتاج تكتب بياناتك تاني مع كل طلب."}</p>
       <form id="aForm" novalidate>
         <div class="afields">
           <div class="field"><label>الاسم <b class="req">*</b></label><input name="name" required maxlength="80" autocomplete="name" value="${esc(m.name || "")}"></div>
           <div class="field"><label>الإيميل <b class="req">*</b></label><input name="email" type="email" required maxlength="120" dir="ltr" autocomplete="email" value="${esc(m.email || "")}"></div>
         </div>
-        <details class="aopt" ${ME && (m.phone || m.area || m.type || (m.interests || []).length || m.source) ? "open" : ""}>
+        <div class="field atype"><label>إنت مين؟ <b class="req">*</b></label>
+          <div class="achips big" role="radiogroup">${CTYPES.map(x => `<label><input type="radio" name="type" value="${esc(x)}" ${m.type === x ? "checked" : ""}><span>${esc(x)}</span></label>`).join("")}</div></div>
+        <details class="aopt" ${edit && (m.phone || m.area || (m.interests || []).length || m.source) ? "open" : ""}>
           <summary><span>بيانات اختيارية <small>(لو حابب)</small></span></summary>
           <div class="afields">
             <div class="field"><label>رقم الموبايل</label><input name="phone" type="tel" maxlength="20" dir="ltr" autocomplete="tel" value="${esc(m.phone || "")}"></div>
             <div class="field"><label>المنطقة / العنوان</label><input name="area" maxlength="160" autocomplete="address-level2" value="${esc(m.area || "")}"></div>
-            <div class="field"><label>إنت مين؟</label><select name="type">${opt(CTYPES, m.type)}</select></div>
             <div class="field"><label>عرفتنا منين؟</label><select name="source">${opt(CSRC, m.source)}</select></div>
           </div>
           <div class="field"><label>مهتم بإيه؟ <small>(اختار أكتر من حاجة)</small></label>
@@ -585,42 +592,49 @@ if (PD && $("#pdBuy")) {
           <label class="acheck"><input type="checkbox" name="offers" ${m.offers !== false ? "checked" : ""}> ابعتولي العروض والخصومات</label>
         </details>
         <p class="aerr" id="aErr" role="alert"></p>
-        <button class="btn btn-primary" type="submit">${ME ? "حفظ البيانات" : "دخول"}</button>
-        ${ME ? `<button class="aout" id="aOut" type="button">تسجيل الخروج</button>` : ""}
+        <button class="btn btn-primary" type="submit">${edit ? "حفظ البيانات" : "دخول المتجر"}</button>
+        ${edit ? `<button class="aout" id="aOut" type="button">تسجيل الخروج</button>` : ""}
       </form>`;
     $("#aForm").addEventListener("submit", submit);
-    const out = $("#aOut"); if (out) out.onclick = () => { ME = null; try { localStorage.removeItem(CK); localStorage.removeItem(SEEN) } catch (e) {} paint(); close(); toast("تم تسجيل الخروج") };
+    const out = $("#aOut"); if (out) out.onclick = () => { ME = null; try { localStorage.removeItem(CK); localStorage.removeItem(SEEN) } catch (e) {} paint(); toast("تم تسجيل الخروج"); gate() };
   };
   function submit(e) {
     e.preventDefault();
     const f = new FormData(e.target), g = k => String(f.get(k) || "").trim(), err = t => { $("#aErr").textContent = t; return false };
-    const name = g("name"), email = g("email").toLowerCase();
+    const name = g("name"), email = g("email").toLowerCase(), type = g("type");
     if (name.length < 2) return err("من فضلك اكتب اسمك");
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return err("من فضلك اكتب إيميل صحيح");
-    const isNew = !ME;
-    ME = {name, email, phone: g("phone"), area: g("area"), type: g("type"), source: g("source"), interests: f.getAll("interests"), offers: f.get("offers") === "on", since: (ME && ME.since) || new Date().toISOString()};
+    if (!CTYPES.includes(type)) return err("من فضلك اختار: عميل ولا فني ولا مهندس ولا مقاول ولا تاجر");
+    const isNew = !ok();
+    ME = {name, email, type, phone: g("phone"), area: g("area"), source: g("source"), interests: f.getAll("interests"), offers: f.get("offers") === "on", since: (ME && ME.since) || new Date().toISOString()};
     store.set(CK, ME); store.set(SEEN, Date.now());
     logEvent("signup", {name, phone: ME.phone, area: ME.area, details: [
       "الإيميل: " + email,
-      ME.type && "نوع العميل: " + ME.type,
+      "نوع العميل: " + type,
       ME.interests.length && "مهتم بـ: " + ME.interests.join("، "),
       ME.source && "عرفنا من: " + ME.source,
       "العروض: " + (ME.offers ? "موافق" : "لا"),
       !isNew && "(تعديل بيانات)"
     ].filter(Boolean).join("\n")});
-    track(isNew ? "sign_up" : "login", {method: "email"});
-    paint(); fill(); close(); toast(isNew ? `أهلاً ${first(name)}، تم تسجيلك ✓` : "تم حفظ بياناتك ✓");
+    track(isNew ? "sign_up" : "login", {method: "email", customer_type: type});
+    gated = false; document.documentElement.classList.remove("cust-gate");
+    paint(); fill(); close(); toast(isNew ? `أهلاً ${first(name)}، نورت المتجر ✓` : "تم حفظ بياناتك ✓");
   }
   /* بنملا خانات الاسم والموبايل في الطلب والحجز تلقائي */
   const fill = () => { if (!ME) return; for (const [s, v] of [["#oName", ME.name], ["#oPhone", ME.phone], ["#oAddr", ME.area], ["input[name=name]", ME.name], ["input[name=phone]", ME.phone]]) for (const el of document.querySelectorAll(s)) if (!el.closest("#aModal") && !el.value && v) el.value = v };
-  const close = () => { modal.hidden = true; document.body.style.overflow = "" };
-  const open = () => { form(); modal.hidden = false; document.body.style.overflow = "hidden"; setTimeout(() => { const i = $("#aForm input[name=name]"); if (i && !ME) i.focus() }, 50) };
-  btn.onclick = open; $("#aClose").onclick = close;
+  const close = () => { if (gated) return; modal.hidden = true; document.body.style.overflow = "" };
+  const open = () => { form(); modal.hidden = false; document.body.style.overflow = "hidden"; setTimeout(() => { const i = $("#aForm input[name=name]"); if (i && !i.value) i.focus() }, 50) };
+  /* المتجر مقفول لحد ما الزائر يسجّل (ما عدا وضع المعاينة من لوحة التحكم) */
+  const gate = () => { gated = true; document.documentElement.classList.add("cust-gate"); open() };
+  if (btn) btn.onclick = open;
+  $("#aClose").onclick = close;
   modal.addEventListener("click", e => { if (e.target === modal) close() });
   addEventListener("keydown", e => { if (e.key === "Escape" && !modal.hidden) close() });
   window.everestLogin = open;
   paint(); fill();
+  if (!ok() && !preview) gate();
+  else document.documentElement.classList.remove("cust-gate");
   /* زيارة جديدة لعميل مسجّل → بتظهر في اللوحة (مرة كل 6 ساعات بالكتير) */
-  if (ME && !preview && Date.now() - (+store.get(SEEN, 0) || 0) > 6 * 3600e3) { store.set(SEEN, Date.now()); logEvent("login", {name: ME.name, phone: ME.phone, area: ME.area, details: "الإيميل: " + ME.email}) }
+  if (ok() && !preview && Date.now() - (+store.get(SEEN, 0) || 0) > 6 * 3600e3) { store.set(SEEN, Date.now()); logEvent("login", {name: ME.name, phone: ME.phone, area: ME.area, details: "الإيميل: " + ME.email + "\nنوع العميل: " + ME.type}) }
 })();
 })();

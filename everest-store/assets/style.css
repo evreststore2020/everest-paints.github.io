@@ -511,3 +511,18 @@ footer.site .legal{border-top:1px solid rgba(255,255,255,.12);margin-top:40px;pa
 .abox .btn-primary:hover{background:#00205c}
 .aout{display:block;margin:14px auto 0;color:var(--muted);text-decoration:underline;font-size:14px}
 @media (max-width:520px){.afields{grid-template-columns:1fr}.abox{padding:26px 18px 20px}}
+
+/* ---------- شاشة التسجيل الإجبارية ---------- */
+html.cust-gate body{overflow:hidden}
+html.cust-gate body>*:not(#aModal):not(.toast){filter:blur(7px);pointer-events:none;user-select:none}
+html.cust-gate body::before{content:"";position:fixed;inset:0;z-index:125;background:rgba(0,20,60,.55)}
+.amodal.gate{background:transparent}
+.amodal.gate .aclose{display:none}
+.agate-brand{display:flex;gap:12px;align-items:center;padding-bottom:16px;margin-bottom:18px;border-bottom:1px solid var(--line)}
+.agate-brand b{display:block;font-size:17px}
+.agate-brand small{color:var(--jotun-blue,#003087);font-size:13px;font-weight:600}
+.atype{margin-bottom:14px}
+.achips.big{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.achips.big span{display:block;text-align:center;padding:11px 4px;font-size:15px;font-weight:600}
+@media (max-width:520px){.achips.big{grid-template-columns:repeat(3,1fr)}}
+.abox{overflow-x:hidden}.achips label{position:relative}
