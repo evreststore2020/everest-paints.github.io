@@ -474,3 +474,6 @@ footer.site .legal{border-top:1px solid rgba(255,255,255,.12);margin-top:40px;pa
 .pd h1{color:var(--black);font-size:clamp(28px,3.4vw,40px);line-height:1.3;font-weight:300}
 .pd .buy{display:flex;flex-direction:column;gap:14px}
 @media (max-width:860px){.pd{grid-template-columns:1fr}}
+
+/* لوحة التحكم منفصلة عن المتجر – مفيش أي زرار ليها هنا */
+.admin-link{display:none!important}

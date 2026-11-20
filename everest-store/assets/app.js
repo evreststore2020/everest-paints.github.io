@@ -74,9 +74,6 @@ if (logo) { logo.onerror = function () { if (this.src !== JOTUN_LOGO) this.src =
 if ($("#menuBtn")) { $("#menuBtn").onclick = () => $("#nav").classList.toggle("open"); $("#nav").addEventListener("click", e => { if (e.target.tagName === "A") $("#nav").classList.remove("open") }) }
 if ($("#yr")) {
   $("#yr").textContent = new Date().getFullYear();
-  /* مدخل مخفي للوحة التحكم: اضغط على سطر الحقوق © في الفوتر 5 مرات ورا بعض */
-  let taps = 0, tapT; const legal = $("#yr").parentElement;
-  legal.addEventListener("click", () => { taps++; clearTimeout(tapT); tapT = setTimeout(() => taps = 0, 2500); if (taps >= 5) location.href = BASE + "admin.html" });
 }
 if ($("#fab")) $("#fab").href = wa("مرحباً، أرغب في الاستفسار عن دهانات جوتن.");
 
