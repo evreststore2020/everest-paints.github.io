@@ -3,4 +3,4 @@ Allow: /
 Disallow: /product.html
 Disallow: /tools/
 
-Sitemap: https://www.example.com/sitemap.xml
+Sitemap: https://evreststore2020.github.io/everest-paints.github.io/everest-store/sitemap.xml
