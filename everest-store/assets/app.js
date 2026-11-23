@@ -50,14 +50,14 @@ const unitLabel = (p, key) => { const k = key && findPk(p, key); return k ? pkLa
    المنتجات اللي سعرها ثابت (أبيض / ألوان جاهزة / أي عبوة ليها سعر ومش "ألوان خاصة") بتتدفع فوراً،
    والمنتجات اللي بتتلوّن أو ملهاش سعر بتتدفع بعد ما المحل يأكد السعر.
    مفتاح "الدفع الفوري" في لوحة التحكم بيحوّل كل الطلبات لـ"بعد التأكيد" وقت تغيّر الأسعار. */
-const PAY_DEF = {instant: true, instapay: true, vf: true, cod: true, instapayUrl: "https://ipn.eg/S/hanynagehgreece/instapay/9oN3kI", instapayId: "", vfUrl: "http://vf.eg/vfcash?id=mt&qrId=cKYVtm", vfNumber: ""};
+const PAY_DEF = {instant: true, instapay: true, vf: true, cod: false, instapayUrl: "https://ipn.eg/S/hanynagehgreece/instapay/9oN3kI", instapayId: "", vfUrl: "http://vf.eg/vfcash?id=mt&qrId=cKYVtm", vfNumber: ""};
 const PAY = Object.assign({}, PAY_DEF, S.pay || {});
 if (!PAY.instapayId) { const m = String(PAY.instapayUrl || "").match(/\/S\/([^/]+)\/instapay/i); if (m) PAY.instapayId = m[1] + "@instapay" }
 const okUrl = u => /^https?:\/\/[^\s"'<>]+$/.test(String(u || ""));
 const METHODS = [
   ["instapay", "إنستاباي", PAY.instapay !== false && (okUrl(PAY.instapayUrl) || PAY.instapayId)],
-  ["vf", "فودافون كاش", PAY.vf !== false && (okUrl(PAY.vfUrl) || PAY.vfNumber)],
-  ["cod", "كاش عند الاستلام", PAY.cod !== false]
+  ["vf", "فودافون كاش", PAY.vf !== false && (okUrl(PAY.vfUrl) || PAY.vfNumber)]
+  /* الدفع عند الاستلام اتلغى – الدفع إنستاباي أو فودافون كاش بس */
 ].filter(m => m[2]);
 const METHOD_NAME = Object.fromEntries(METHODS.map(m => [m[0], m[1]]));
 const TINT = "ألوان خاصة";
