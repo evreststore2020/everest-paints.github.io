@@ -600,3 +600,10 @@ footer.site{padding-bottom:96px}
 .os-link{font-size:13px;color:var(--jotun-blue,#003087);text-decoration:underline}
 .os-close{font-size:14px;color:var(--muted);text-decoration:underline;margin-top:4px}
 @media (max-width:420px){.pb-opts{grid-template-columns:1fr}}
+
+/* ---------- زرار «اطلب الآن» في الفيديوهات ---------- */
+.vitem{display:flex;flex-direction:column;gap:10px}
+.vorder-btn{align-self:flex-start;display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--jotun-blue,#003087);color:#fff;padding:9px 18px;font-size:14px;font-weight:600;transition:background .25s}
+.vorder-btn:hover{background:#00205c}
+.vorder-btn small{font-weight:400;font-size:12px;opacity:.8}
+.vorder-btn.in-modal{margin-top:12px;font-size:15px;padding:11px 22px}

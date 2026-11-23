@@ -545,19 +545,34 @@ if ($("#videos")) {
   const VIDS = (DATA.videos || []).filter(v => v.active !== false && v.src);
   $("#videos").hidden = false;
   $("#vidArrows").hidden = VIDS.length < 4;
+  /* زرار «اطلب الآن» (اختياري لكل فيديو): لو ليه منتج بيتضاف للسلة، ولو لأ بيفتح واتساب */
+  const vProd = v => { const p = v.orderProduct && byId(v.orderProduct); return p && p.active !== false ? p : null };
+  const orderBtn = (v, i, cls = "") => v.order ? `<button class="vorder-btn ${cls}" type="button" data-vorder="${i}">🛒 اطلب الآن${vProd(v) ? `<small>${esc(vProd(v).ar)}</small>` : ""}</button>` : "";
   $("#vidList").innerHTML = VIDS.length ? VIDS.map((v, i) => `
+    <div class="vitem ${v.vertical ? "vertical" : ""}">
     <button class="vcard ${v.vertical ? "vertical" : ""}" data-v="${i}">
       <span class="vthumb">${VID.thumb(v) ? `<img loading="lazy" src="${esc(VID.thumb(v))}" alt="" onerror="this.remove()">` : v.type === "file" ? `<video src="${esc((/^https?:/.test(v.src) ? v.src : BASE + v.src) + "#t=1")}" preload="metadata" muted playsinline tabindex="-1"></video>` : ""}<span class="vsrc">${VID.label[v.type] || ""}</span><span class="vplay"></span></span>
       <b>${esc(v.title || "")}</b>${v.desc ? `<small>${esc(v.desc)}</small>` : ""}
-    </button>`).join("") : `<div class="empty" style="grid-column:1/-1">قريباً… فيديوهات لأعمالنا ونصائح الدهان.</div>`;
+    </button>${orderBtn(v, i)}</div>`).join("") : `<div class="empty" style="grid-column:1/-1">قريباً… فيديوهات لأعمالنا ونصائح الدهان.</div>`;
   const close = () => { $("#vFrame").innerHTML = ""; $("#vModal").hidden = true; document.body.style.overflow = "" };
+  const orderVideo = i => {
+    const v = VIDS[i], p = vProd(v);
+    track("generate_lead", {lead_type: "video_order", item_name: v.title || v.src});
+    if (p && $("#items")) {
+      const L = PK(p), W = L.filter(isWhite), d = (W.length ? W : L).slice().sort((a, b) => b.s - a.s)[0];
+      close(); addToCart(p.id + "|" + (sel[p.id] ?? (d ? pkKey(d) : "")), 1, true); window.everestOpenCart && everestOpenCart();
+      toast(`تمت إضافة ${p.ar} للسلة ✓ – تقدر تغيّر العبوة من صفحة المنتج`);
+    } else window.open(wa(`مرحباً 👋 شفت فيديو «${v.title || "على موقعكم"}» وعايز أطلب زيه.${p ? `\nالمنتج: ${p.ar}` : ""}`), "_blank");
+  };
+  $("#vidList").addEventListener("click", e => { const o = e.target.closest("[data-vorder]"); if (o) orderVideo(+o.dataset.vorder) });
+  $("#vCap").addEventListener("click", e => { const o = e.target.closest("[data-vorder]"); if (o) orderVideo(+o.dataset.vorder) });
   $("#vidList").addEventListener("click", e => {
     const b = e.target.closest("[data-v]"); if (!b) return; const v = VIDS[+b.dataset.v];
     $("#vBox").classList.toggle("vertical", !!v.vertical);
     $("#vFrame").innerHTML = v.type === "file"
       ? `<video src="${esc(/^https?:/.test(v.src) ? v.src : BASE + v.src)}" controls autoplay playsinline></video>`
       : `<iframe src="${esc(VID.embed(v))}" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen title="${esc(v.title || "فيديو")}"></iframe>`;
-    $("#vCap").innerHTML = `<b>${esc(v.title || "")}</b>${v.desc ? `<small>${esc(v.desc)}</small>` : ""}`;
+    $("#vCap").innerHTML = `<b>${esc(v.title || "")}</b>${v.desc ? `<small>${esc(v.desc)}</small>` : ""}${orderBtn(v, +b.dataset.v, "in-modal")}`;
     $("#vModal").hidden = false; document.body.style.overflow = "hidden";
     track("view_item", {item_name: "video: " + (v.title || v.src)});
   });
