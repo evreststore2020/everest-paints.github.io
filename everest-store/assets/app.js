@@ -33,7 +33,7 @@ const byId = id => DATA.products.find(p => p.id === id);
 const J = "https://www.jotun.com/eg-ar/decorative/products/";
 const IMG = id => `https://cdn-pim.jotun.com/images/ProductImages/${id}/1300x1334/${id}.png?format=webp&width=562&quality=70`;
 const JOTUN_LOGO = "https://www.jotun.com/siteassetsjot03/jotun-logo-new.svg";
-const wa = t => `https://wa.me/${S.whatsapp}?text=${encodeURIComponent(t)}`;
+const wa = t => `https://wa.me/${S.whatsapp}?text=${encodeURIComponent(String(t).replace(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE0F}\u{200D}]/gu, "").replace(/[ \t]{2,}/g, " ").trim())}`;
 const unitWord = p => p.u === "كجم" ? "كجم" : "لتر";
 /* العبوات: كل عبوة {s: الحجم, u: الوحدة, p: سعر العبوة, v: النوع (أبيض/ألوان خاصة...)}
    المنتجات القديمة اللي ليها سعر للتر + أحجام بتتحول تلقائياً */
