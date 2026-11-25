@@ -268,6 +268,7 @@ if ($("#items")) {
   $("#items").addEventListener("click", e => { const b = e.target.closest("[data-k]"); if (b) addToCart(b.dataset.k, +b.dataset.d, true) });
   /* صندوق الدفع قبل زرار الطلب (بيتضاف لكل الصفحات من هنا) */
   $("#checkout").insertAdjacentHTML("beforebegin", `<div class="paybox" id="payBox"></div>`);
+  $("#checkout").parentElement.insertAdjacentHTML("beforeend", `<small class="apolicy">بتأكيد الطلب أنت موافق على <a href="${BASE}policies.html#terms" target="_blank">الشروط</a> و<a href="${BASE}policies.html#returns" target="_blank">سياسة الاسترجاع</a>.</small>`);
   const hintEl = $("#checkout").nextElementSibling; if (hintEl && hintEl.tagName === "SMALL") hintEl.id = "checkoutHint";
   $("#checkout").classList.remove("btn-wa"); $("#checkout").classList.add("btn-primary", "btn-pay");
   $("#payBox").addEventListener("change", e => {
@@ -281,10 +282,13 @@ if ($("#items")) {
   $("#openCart").onclick = openC; $("#closeCart").onclick = closeC; $("#overlay").onclick = closeC;
   if (location.hash === "#cart") openC();
   if (disc) $("#codeIn").value = disc.code;
-  $("#codeBtn").onclick = () => {
+  $("#codeBtn").onclick = async () => {
     const v = $("#codeIn").value.trim().toUpperCase();
     if (!v) { disc = null; save(); renderCart(); return }
-    const c = (DATA.discountCodes || []).find(x => x.active && x.code.toUpperCase() === v);
+    /* الأكواد مش بتوصل للمتصفح: قاعدة البيانات بتتأكد من الكود الواحد */
+    let c = null;
+    if (SB && !preview) { try { c = await SB.rpc("check_discount", {p_code: v}) } catch (e) { return toast("تعذّر التأكد من الكود، حاول تاني") } if (c && c.limited) return toast("محاولات كتير، جرّب بعد 10 دقايق") }
+    else c = (DATA.discountCodes || []).find(x => x.active && x.code.toUpperCase() === v);
     if (!c) { disc = null; save(); renderCart(); return toast("الكود غير صحيح أو غير مفعّل") }
     disc = {code: c.code, percent: c.percent, label: c.label}; save(); renderCart(); toast("تم تطبيق الخصم ✓");
   };
@@ -680,6 +684,7 @@ if (PD && $("#pdBuy")) {
 /* ---------- تصميم وتطوير: داش تكنولوجي (في آخر الفوتر في كل الصفحات) ---------- */
 {
   const ft = document.querySelector("footer.site .wrap");
+  if (ft) ft.insertAdjacentHTML("beforeend", `<div class="policy-links">${[["privacy", "سياسة الخصوصية"], ["returns", "الاستبدال والاسترجاع"], ["delivery", "التوصيل"], ["terms", "الشروط والأحكام"]].map(([k, n]) => `<a href="${BASE}policies.html#${k}">${n}</a>`).join("")}</div>`);
   if (ft && !document.querySelector(".dash-credit")) ft.insertAdjacentHTML("beforeend", `
     <div class="dash-credit">
       <div class="dc-brand">
@@ -735,8 +740,9 @@ if (PD && $("#pdBuy")) {
           <div class="field" style="margin-bottom:14px"><label>عرفتنا منين؟</label><select name="source">${opt(CSRC, m.source)}</select></div>
           <div class="field"><label>مهتم بإيه؟ <small>(اختار أكتر من حاجة)</small></label>
             <div class="achips">${CINT.map(x => `<label><input type="checkbox" name="interests" value="${esc(x)}" ${(m.interests || []).includes(x) ? "checked" : ""}><span>${esc(x)}</span></label>`).join("")}</div></div>
-          <label class="acheck"><input type="checkbox" name="offers" ${m.offers !== false ? "checked" : ""}> ابعتولي العروض والخصومات</label>
+          <label class="acheck"><input type="checkbox" name="offers" ${m.offers === true ? "checked" : ""}> ابعتولي العروض والخصومات</label>
         </details>
+        <p class="apolicy">بتسجيلك أنت موافق على <a href="${BASE}policies.html#terms" target="_blank">الشروط</a> و<a href="${BASE}policies.html#privacy" target="_blank">سياسة الخصوصية</a>.</p>
         <p class="aerr" id="aErr" role="alert"></p>
         <button class="btn btn-primary" type="submit">${edit ? "حفظ البيانات" : "دخول المتجر"}</button>
         ${edit ? `<button class="aout" id="aOut" type="button">تسجيل الخروج</button>` : ""}
