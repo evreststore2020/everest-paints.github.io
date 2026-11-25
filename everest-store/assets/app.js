@@ -66,7 +66,7 @@ const payTag = (p, key) => packPrice(p, key) == null ? "" : tinted(p, key) ? `<s
 const pageUrl = p => PAGES && !PAGES.has(p.id) ? `${BASE}product.html?id=${encodeURIComponent(p.id)}` : `${BASE}p/${p.id}.html`;
 /* تسجيل الطلبات والحجوزات في جوجل شيت (لو مربوط) */
 function logEvent(type, o = {}) {
-  if (!SB) return;
+  if (!SB) return Promise.resolve(false);
   const clip = (v, n) => v == null || v === "" ? null : String(v).trim().slice(0, n);
   const cust = type === "signup" || type === "login", me = store.get("everest-customer", null);
   let det = o.details || "";
@@ -77,10 +77,10 @@ function logEvent(type, o = {}) {
      بيانات الدفع موجودة في التفاصيل، والعميل بيتسجل كـ"تواصل" بعلامة واللوحة بتفهمها */
   return SB.insert("orders", row).catch(e => {
     if (e.status !== 400) throw e;
-    if (row.pay) { const r = Object.assign({}, row); delete r.pay; return SB.insert("orders", r) }
-    if (cust) return SB.insert("orders", Object.assign({}, row, {type: "contact", details: clip((type === "signup" ? "👤 تسجيل عميل" : "🔑 دخول عميل") + "\n" + (row.details || ""), 3000)}));
+    if (row.pay && e.code === "PGRST204") { const r = Object.assign({}, row); delete r.pay; return SB.insert("orders", r) }
+    if (cust && e.code === "23514") return SB.insert("orders", Object.assign({}, row, {type: "contact", details: clip((type === "signup" ? "👤 تسجيل عميل" : "🔑 دخول عميل") + "\n" + (row.details || ""), 3000)}));
     throw e;
-  }).catch(e => console.warn("order log:", e.message));
+  }).then(() => true).catch(e => { console.warn("order log:", e.message); return false });
 }
 
 /* ---------- التتبع: Google Analytics 4 و Facebook Pixel ---------- */
@@ -288,7 +288,9 @@ if ($("#items")) {
     if (!c) { disc = null; save(); renderCart(); return toast("الكود غير صحيح أو غير مفعّل") }
     disc = {code: c.code, percent: c.percent, label: c.label}; save(); renderCart(); toast("تم تطبيق الخصم ✓");
   };
-  $("#checkout").onclick = () => {
+  let sending = false;
+  $("#checkout").onclick = async () => {
+    if (sending) return;
     const T = totals(); if (!T.L.length) return toast("السلة فارغة");
     const name = $("#oName").value.trim(), phone = $("#oPhone").value.trim(), addr = $("#oAddr").value.trim();
     if (!name || !phone) return toast("من فضلك اكتب الاسم ورقم الهاتف");
@@ -299,9 +301,13 @@ if ($("#items")) {
     const payTxt = [`طريقة الدفع: ${METHOD_NAME[method] || "-"}`, `نوع الطلب: ${MODE_TXT[T.mode]}`, due > 0 ? `المطلوب الآن: ${fmt(due)}` : (T.mode === "mixed" && method !== "cod" ? "الدفع: كله بعد التأكيد" : "")].filter(Boolean).join("\n");
     const msg = `طلب جديد من متجر إفرست 🛒\nرقم الطلب: ${no}\n\n${lines.join("\n")}\n\nالمجموع: ${fmt(T.sub)}${disc ? `\nخصم ${disc.label} (${disc.code}): − ${fmt(T.d)}` : ""}\nالإجمالي التقريبي: ${fmt(T.tot)}${T.unknown ? " + منتجات سعرها عند التأكيد" : ""}${color ? `\nكود اللون: ${color}` : ""}\n${payTxt}\n\nالاسم: ${name}\nالهاتف: ${phone}\nالعنوان: ${addr || "-"}`;
     track("begin_checkout", {currency: "EGP", value: T.tot, coupon: disc ? disc.code : undefined, payment_type: method});
-    logEvent("order", {name, phone, area: addr, total: T.tot,
+    sending = true; $("#checkout").disabled = true; $("#checkout").textContent = "جاري إرسال الطلب…";
+    const saved = await logEvent("order", {name, phone, area: addr, total: T.tot,
       details: `رقم الطلب: ${no}\n${lines.join("\n")}` + (disc ? `\nكود خصم: ${disc.code} (${disc.percent}٪)` : "") + (color ? `\nكود اللون: ${color}` : "") + `\n${payTxt}`,
-      pay: {no, mode: T.mode, method, split: T.mode === "mixed" ? PAYSTATE.split : null, due_now: due, fixed: T.fixedNet, pending_items: T.pendN, status: "لم يدفع", paid: 0, final: T.unknown || T.mode !== "instant" ? null : T.tot}});
+      pay: {items: T.L.map(l => { const i = l.k.indexOf("|"); return {id: l.k.slice(0, i), k: l.sample ? l.code : l.size || "", n: l.n} }), code: disc ? disc.code : null, no, mode: T.mode, method, split: T.mode === "mixed" ? PAYSTATE.split : null, due_now: due, fixed: T.fixedNet, pending_items: T.pendN, status: "لم يدفع", paid: 0, final: T.unknown || T.mode !== "instant" ? null : T.tot}});
+    sending = false; $("#checkout").disabled = false;
+    /* لو الطلب ما اتسجلش: مانقولش "تم الاستلام" ومانطلبش فلوس، والسلة بتفضل زي ما هي */
+    if (!saved) { renderCart(); toast("الطلب ما اتسجلش – ابعته لينا على واتساب"); const h = $("#checkoutHint"); if (h) h.innerHTML = `⚠ الطلب ما اتسجلش. <a class="os-link" href="${wa(msg)}" target="_blank" rel="noopener">ابعته على واتساب</a> واستنى ردنا قبل أي تحويل.`; return }
     showSuccess({no, due, method, mode: T.mode, msg});
     cart = {}; disc = null; $("#codeIn").value = ""; save(); renderCart();
   };
