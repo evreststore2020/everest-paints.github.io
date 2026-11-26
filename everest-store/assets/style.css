@@ -619,3 +619,36 @@ footer.site{padding-bottom:96px}
   .os-row span,.os-amount span{grid-column:1/-1}
   .os-row b{font-size:14px;letter-spacing:0;overflow-wrap:anywhere;word-break:normal}
 }
+
+/* ---------- اللوجو الجديد ---------- */
+.brand-mark.logo-new{width:auto;height:56px;background:none;box-shadow:none;padding:0}
+.brand-mark.logo-new img{height:56px;width:auto;display:block;border-radius:4px}
+@media (max-width:860px){.brand-mark.logo-new,.brand-mark.logo-new img{height:46px}}
+.agate-brand img{height:54px;width:auto;border-radius:4px}
+/* ---------- نجوم نادي إفرست على الشريط الأزرق ---------- */
+.club-ticker{display:flex;align-items:center;gap:14px;background:#00205c;color:#fff;font-size:13px;overflow:hidden;height:34px;padding-inline-start:16px}
+.club-ticker>b{flex:none;color:#fdb206;font-weight:700;white-space:nowrap}
+.ct-track{flex:1;overflow:hidden;mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)}
+.ct-run{display:inline-flex;gap:34px;white-space:nowrap;animation:ctMove 45s linear infinite;padding-inline-start:20px}
+.ct-run small{opacity:.7}
+.club-ticker:hover .ct-run{animation-play-state:paused}
+@keyframes ctMove{from{transform:translateX(0)}to{transform:translateX(50%)}}
+@media (prefers-reduced-motion:reduce){.ct-run{animation:none}}
+/* ---------- شاشة التسجيل: زائر + خانات حسب النوع ---------- */
+.achips.big .visitor-chip{grid-column:1/-1}
+.achips.big .visitor-chip span{border-style:dashed}
+#aForm .vinfo{display:none;background:#f2f5fb;padding:12px 14px;font-size:14px;line-height:1.7;margin:4px 0 14px}
+#aForm[data-type="زائر"] .vinfo{display:block}
+#aForm[data-type="زائر"] .basef{display:none}
+.xf{border:1px solid #cfd9ee;background:#f8faff;padding:14px;margin:0 0 14px}
+.xf[hidden]{display:none}
+.club-head{display:flex;flex-direction:column;gap:2px;margin-bottom:12px}
+.club-head b{color:var(--jotun-blue,#003087);font-size:16px}
+.club-head small{color:var(--muted);font-size:13px;line-height:1.6}
+.aopt-tag{color:var(--muted);font-weight:400;font-size:11px}
+.ahint{display:block;color:var(--muted);font-size:12px;margin-top:4px;line-height:1.6}
+.fpick{display:block;cursor:pointer}
+.fpick input{position:absolute;opacity:0;width:1px;height:1px}
+.fpick span{display:block;border:1px dashed #9fb2d8;background:#fff;padding:11px 12px;font-size:13px;color:var(--ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fpick input:focus-visible+span{outline:2px solid var(--ink)}
+.aprog{background:#fff6dc;color:#7a4300;font-size:13px;padding:9px 12px;margin-bottom:10px}

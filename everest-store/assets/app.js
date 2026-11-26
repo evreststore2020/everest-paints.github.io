@@ -11,7 +11,7 @@ const fmt = n => Math.round(n).toLocaleString("ar-EG") + " ج.م";
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const store = { get(k, d) { try { return JSON.parse(localStorage.getItem(k)) ?? d } catch (e) { return d } }, set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)) } catch (e) {} } };
 /* لو الزائر لسه ما سجّلش: المتجر بيبان مقفول من أول لحظة لحد ما شاشة التسجيل تظهر */
-{ const c = store.get("everest-customer", null); if (!(c && c.name && c.email && c.type && c.phone && c.area) && !new URLSearchParams(location.search).has("preview")) document.documentElement.classList.add("cust-gate") }
+{ const c = store.get("everest-customer", null), v = +store.get("everest-visitor", 0) || 0; if (!(c && c.name && c.email && c.type && c.phone && c.area) && Date.now() - v > 7 * 864e5 && !new URLSearchParams(location.search).has("preview")) document.documentElement.classList.add("cust-gate") }
 
 /* ---------- تحميل البيانات ---------- */
 let DATA;
@@ -307,8 +307,8 @@ if ($("#items")) {
     track("begin_checkout", {currency: "EGP", value: T.tot, coupon: disc ? disc.code : undefined, payment_type: method});
     sending = true; $("#checkout").disabled = true; $("#checkout").textContent = "جاري إرسال الطلب…";
     const saved = await logEvent("order", {name, phone, area: addr, total: T.tot,
-      details: `رقم الطلب: ${no}\n${lines.join("\n")}` + (disc ? `\nكود خصم: ${disc.code} (${disc.percent}٪)` : "") + (color ? `\nكود اللون: ${color}` : "") + `\n${payTxt}`,
-      pay: {items: T.L.map(l => { const i = l.k.indexOf("|"); return {id: l.k.slice(0, i), k: l.sample ? l.code : l.size || "", n: l.n} }), code: disc ? disc.code : null, no, mode: T.mode, method, split: T.mode === "mixed" ? PAYSTATE.split : null, due_now: due, fixed: T.fixedNet, pending_items: T.pendN, status: "لم يدفع", paid: 0, final: T.unknown || T.mode !== "instant" ? null : T.tot}});
+      details: `رقم الطلب: ${no}\n${lines.join("\n")}` + (window.everestRef && everestRef() ? `\nرقم الفني / النقاش: ${everestRef()}` : "") + (disc ? `\nكود خصم: ${disc.code} (${disc.percent}٪)` : "") + (color ? `\nكود اللون: ${color}` : "") + `\n${payTxt}`,
+      pay: {ref: (window.everestRef && everestRef()) || null, items: T.L.map(l => { const i = l.k.indexOf("|"); return {id: l.k.slice(0, i), k: l.sample ? l.code : l.size || "", n: l.n} }), code: disc ? disc.code : null, no, mode: T.mode, method, split: T.mode === "mixed" ? PAYSTATE.split : null, due_now: due, fixed: T.fixedNet, pending_items: T.pendN, status: "لم يدفع", paid: 0, final: T.unknown || T.mode !== "instant" ? null : T.tot}});
     sending = false; $("#checkout").disabled = false;
     /* لو الطلب ما اتسجلش: مانقولش "تم الاستلام" ومانطلبش فلوس، والسلة بتفضل زي ما هي */
     if (!saved) { renderCart(); toast("الطلب ما اتسجلش – ابعته لينا على واتساب"); const h = $("#checkoutHint"); if (h) h.innerHTML = `⚠ الطلب ما اتسجلش. <a class="os-link" href="${wa(msg)}" target="_blank" rel="noopener">ابعته على واتساب</a> واستنى ردنا قبل أي تحويل.`; return }
@@ -703,92 +703,196 @@ if (PD && $("#pdBuy")) {
     </div>`);
 }
 
-/* ---------- حساب العميل: شاشة تسجيل إجبارية قبل فتح المتجر ---------- */
+/* ---------- اللوجو الجديد (الأصفر) في كل الصفحات – لوجو جوتن زي ما هو ---------- */
+{
+  const bm = document.querySelector(".brand-mark");
+  if (bm) { bm.classList.add("logo-new"); bm.innerHTML = `<img src="${BASE}assets/everest-logo-h.png" alt="Everest Paints – إفرست للدهانات" width="96" height="55">` }
+  let ic = document.querySelector('link[rel="icon"]'); if (!ic) { ic = document.createElement("link"); ic.rel = "icon"; document.head.appendChild(ic) }
+  ic.type = "image/png"; ic.href = BASE + "assets/everest-icon.png";
+}
+
+/* ---------- نجوم نادي إفرست على الشريط الأزرق (الأسماء بيختارها الأدمن من اللوحة) ---------- */
+if (SB && !preview) SB.select("site_data", "select=value&key=eq.ticker").then(r => {
+  const L = (r && r[0] && Array.isArray(r[0].value) ? r[0].value : []).filter(x => x && x.name).slice(0, 40);
+  const nav = document.querySelector("header.main .navrow"); if (!L.length || !nav) return;
+  const items = L.map(x => `<span>⭐ ${esc(String(x.name).slice(0, 60))}${x.title ? ` <small>${esc(String(x.title).slice(0, 40))}</small>` : ""}</span>`).join("");
+  nav.insertAdjacentHTML("afterend", `<div class="club-ticker" aria-label="نجوم نادي إفرست"><b>نجوم نادي إفرست</b><div class="ct-track"><div class="ct-run">${items}${items}</div></div></div>`);
+}).catch(() => {});
+
+/* ---------- حساب العميل: شاشة تسجيل قبل فتح المتجر + خانات حسب النوع + نادي إفرست ---------- */
 (function () {
-  const CK = "everest-customer", SEEN = "everest-customer-seen";
+  const CK = "everest-customer", SEEN = "everest-customer-seen", VK = "everest-visitor";
   const CTYPES = ["عميل", "فني", "مهندس", "مقاول", "تاجر", "شركة"];
   const CINT = ["دهانات داخلية", "دهانات خارجية", "ديكورات وتأثيرات", "دهانات أخشاب", "أرضيات وصناعي", "عزل"];
   const CSRC = ["فيسبوك", "إنستجرام", "تيك توك", "جوجل", "واتساب", "صديق / قريب", "عدّيت على المحل"];
+  const BIZ = (n) => [["company", n, "text"], ["cr_no", "رقم السجل التجاري", "text"], ["cr_file", "صورة السجل التجاري", "file"], ["tax_no", "رقم البطاقة الضريبية", "text"], ["tax_file", "صورة البطاقة الضريبية", "file"]];
+  /* الخانات الإضافية لكل نوع – كلها اختيارية، والأدمن يقدر يخليها إجباري أو يخفيها من الإعدادات */
+  const XF = {
+    "عميل": [["ref_phone", "رقم الفني / النقاش اللي بيشتغل معاك", "tel", null, "لو جالك عن طريق نقاش أو فني، اكتب رقمه عشان نكرّمه"], ["ref_name", "اسم الفني / النقاش", "text"]],
+    "فني": [["specialty", "التخصص", "select", ["نقاش", "دهانات ديكورية", "ورق حائط", "عزل", "جبس بورد", "أخرى"]], ["experience", "سنين الخبرة", "number"],
+      ["id_front", "صورة البطاقة (وش)", "file"], ["id_back", "صورة البطاقة (ضهر)", "file"], ["photo", "صورة شخصية (للتكريم والإعلانات)", "file"]],
+    "مهندس": [["specialty", "التخصص", "select", ["مدني", "معماري", "ديكور", "أخرى"]], ["syndicate_no", "رقم عضوية النقابة", "text"], ["syndicate_card", "صورة كارنيه النقابة", "file"]],
+    "مقاول": BIZ("اسم الشركة / المؤسسة"), "تاجر": BIZ("اسم المحل"), "شركة": BIZ("اسم الشركة")
+  };
+  const CLUB = ["فني", "مهندس", "مقاول", "تاجر", "شركة"];
+  const RULE = (t, k) => { const g = (S.signup || {})[t], r = g && typeof g === "object" ? g[k] : (S.signup || {})[t + "." + k]; return r === "off" || r === "req" ? r : "opt" };
   const cartB = $("#openCart");
   let ME = store.get(CK, null);
   const ok = () => !!(ME && ME.name && ME.email && ME.type && ME.phone && ME.area);
+  const visitor = () => { const v = +store.get(VK, 0) || 0; return Date.now() - v < 7 * 864e5 };
   const first = n => String(n || "").trim().split(/\s+/)[0];
+  const digits = s => String(s || "").replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d)).replace(/[۰-۹]/g, d => "۰۱۲۳۴۵۶۷۸۹".indexOf(d)).replace(/[\s\-()]/g, "");
+  const okPhone = p => /^(\+?20)?0?1[0125]\d{8}$/.test(p) || /^\+?\d{8,15}$/.test(p);
   if (cartB) cartB.insertAdjacentHTML("beforebegin", `<button class="acct-btn" id="acctBtn" type="button"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg><span class="lbl" id="acctLbl"></span><i class="acct-dot"></i></button>`);
   document.body.insertAdjacentHTML("beforeend", `<div class="amodal" id="aModal" hidden><div class="abox" role="dialog" aria-modal="true" aria-labelledby="aTitle"><button class="aclose" id="aClose" type="button" aria-label="إغلاق">✕</button><div id="aBody"></div></div></div>`);
   const btn = $("#acctBtn"), modal = $("#aModal");
-  let gated = false;
+  let gated = false, busy = false;
   const paint = () => { if (!btn) return; $("#acctLbl").textContent = ok() ? "أهلاً " + first(ME.name) : "تسجيل الدخول"; btn.title = ok() ? "حسابي: " + ME.name : "تسجيل الدخول"; btn.setAttribute("aria-label", btn.title); btn.classList.toggle("in", ok()) };
   const opt = (list, v) => `<option value="">— اختار —</option>` + list.map(x => `<option ${x === v ? "selected" : ""}>${esc(x)}</option>`).join("");
+  /* خانات نوع واحد */
+  const xfHTML = (t, m) => {
+    const X = m.x || {}, D = m.docs || {}, rows = XF[t].filter(([k]) => RULE(t, k) !== "off");
+    const club = CLUB.includes(t);
+    if (!rows.length && !club) return "";
+    const f = ([k, label, kind, list, hint]) => {
+      const req = RULE(t, k) === "req", star = req ? ' <b class="req">*</b>' : ' <small class="aopt-tag">(اختياري)</small>', nm = `x_${k}`;
+      if (kind === "file") return `<div class="field afile"><label>${esc(label)}${star}</label><label class="fpick"><input type="file" name="${nm}" accept="image/*,application/pdf" data-req="${req ? 1 : ""}"><span>${D[k] ? "✓ اترفعت قبل كده – اختار ملف تاني لو عايز تغيّرها" : "📎 اختار صورة أو PDF (لحد 5 ميجا)"}</span></label></div>`;
+      if (kind === "select") return `<div class="field"><label>${esc(label)}${star}</label><select name="${nm}" data-req="${req ? 1 : ""}">${opt(list, X[k])}</select></div>`;
+      return `<div class="field"><label>${esc(label)}${star}</label><input name="${nm}" ${kind === "tel" ? 'type="tel" dir="ltr" inputmode="tel" placeholder="01xxxxxxxxx"' : kind === "number" ? 'type="number" min="0" max="70" inputmode="numeric"' : ""} maxlength="80" data-req="${req ? 1 : ""}" value="${esc(X[k] || "")}">${hint ? `<small class="ahint">${esc(hint)}</small>` : ""}</div>`;
+    };
+    return `<div class="xf" data-for="${t}">
+      ${club ? `<div class="club-head"><b>🏅 ${t === "فني" ? "انضم لنادي إفرست" : "شريك نادي إفرست"}</b><small>${t === "فني" ? "عمولة على العملاء اللي بتجيبهم، دعوات للسمينارات والفعاليات، وتكريم في فيديوهاتنا." : "أسعار ومتابعة خاصة للمشاريع، ودعوات للسمينارات والفعاليات."}</small></div>` : ""}
+      <div class="afields">${rows.map(f).join("")}</div>
+      ${club ? `<label class="acheck"><input type="checkbox" name="x_consent_events" ${X.consent_events !== false ? "checked" : ""}> ابعتولي دعوات الفعاليات والسمينارات</label>
+      <label class="acheck"><input type="checkbox" name="x_consent_ticker" ${X.consent_ticker ? "checked" : ""}> موافق اسمي يظهر في «نجوم نادي إفرست» على الموقع</label>
+      ${rows.some(r => r[2] === "file") ? `<p class="ahint">🔒 المستندات بتتحفظ في مخزن خاص، ومحدش يشوفها غير إدارة إفرست للتحقق من البيانات بس.</p>` : ""}` : ""}
+    </div>`;
+  };
   const form = () => {
     const m = ME || {}, edit = ok();
     modal.classList.toggle("gate", gated);
     $("#aBody").innerHTML = `
-      ${gated ? `<div class="agate-brand"><img src="${BASE}assets/logo.svg" alt="" width="46" height="46" onerror="this.remove()"><div><b>إفرست للدهانات والديكور</b><small>وكيل جوتن المعتمد</small></div></div>` : ""}
+      ${gated ? `<div class="agate-brand"><img src="${BASE}assets/everest-logo-h.png" alt="" width="94" height="54" onerror="this.remove()"><div><b>إفرست للدهانات والديكور</b><small>وكيل جوتن المعتمد</small></div></div>` : ""}
       <h3 id="aTitle">${edit ? "بياناتي" : gated ? "أهلاً بيك 👋 سجّل بياناتك للدخول" : "تسجيل الدخول"}</h3>
-      <p class="muted">${edit ? "تقدر تعدّل بياناتك في أي وقت." : "سجّل اسمك وإيميلك مرة واحدة بس عشان تدخل المتجر – ومش هتحتاج تكتب بياناتك تاني مع كل طلب."}</p>
-      <form id="aForm" novalidate>
-        <div class="afields">
-          <div class="field"><label>الاسم <b class="req">*</b></label><input name="name" required maxlength="80" autocomplete="name" value="${esc(m.name || "")}"></div>
-          <div class="field"><label>الإيميل <b class="req">*</b></label><input name="email" type="email" required maxlength="120" dir="ltr" autocomplete="email" value="${esc(m.email || "")}"></div>
-          <div class="field"><label>رقم الموبايل <b class="req">*</b></label><input name="phone" type="tel" required maxlength="20" dir="ltr" inputmode="tel" autocomplete="tel" placeholder="01xxxxxxxxx" value="${esc(m.phone || "")}"></div>
-          <div class="field"><label>المنطقة / العنوان <b class="req">*</b></label><input name="area" required maxlength="160" autocomplete="street-address" placeholder="مثال: المرج – شارع ..." value="${esc(m.area || "")}"></div>
-        </div>
+      <p class="muted">${edit ? "تقدر تعدّل بياناتك في أي وقت." : "سجّل مرة واحدة بس – ومش هتحتاج تكتب بياناتك تاني مع كل طلب."}</p>
+      <form id="aForm" novalidate data-type="${esc(m.type || "")}">
         <div class="field atype"><label>إنت مين؟ <b class="req">*</b></label>
-          <div class="achips big" role="radiogroup">${CTYPES.map(x => `<label><input type="radio" name="type" value="${esc(x)}" ${m.type === x ? "checked" : ""}><span>${esc(x)}</span></label>`).join("")}</div></div>
-        <details class="aopt" ${edit && ((m.interests || []).length || m.source) ? "open" : ""}>
-          <summary><span>بيانات اختيارية <small>(لو حابب)</small></span></summary>
-          <div class="field" style="margin-bottom:14px"><label>عرفتنا منين؟</label><select name="source">${opt(CSRC, m.source)}</select></div>
-          <div class="field"><label>مهتم بإيه؟ <small>(اختار أكتر من حاجة)</small></label>
-            <div class="achips">${CINT.map(x => `<label><input type="checkbox" name="interests" value="${esc(x)}" ${(m.interests || []).includes(x) ? "checked" : ""}><span>${esc(x)}</span></label>`).join("")}</div></div>
-          <label class="acheck"><input type="checkbox" name="offers" ${m.offers === true ? "checked" : ""}> ابعتولي العروض والخصومات</label>
-        </details>
-        <p class="apolicy">بتسجيلك أنت موافق على <a href="${BASE}policies.html#terms" target="_blank">الشروط</a> و<a href="${BASE}policies.html#privacy" target="_blank">سياسة الخصوصية</a>.</p>
+          <div class="achips big" role="radiogroup">${[...CTYPES, ...(edit ? [] : ["زائر"])].map(x => `<label class="${x === "زائر" ? "visitor-chip" : ""}"><input type="radio" name="type" value="${esc(x)}" ${m.type === x ? "checked" : ""}><span>${x === "زائر" ? "👀 زائر" : esc(x)}</span></label>`).join("")}</div></div>
+        <div class="vinfo">تقدر تتفرج على المنتجات والأسعار من غير تسجيل. لما تحب تطلب، هنطلب منك اسمك ورقمك بس.</div>
+        <div class="basef">
+          <div class="afields">
+            <div class="field"><label>الاسم <b class="req">*</b></label><input name="name" maxlength="80" autocomplete="name" value="${esc(m.name || "")}"></div>
+            <div class="field"><label>الإيميل <b class="req">*</b></label><input name="email" type="email" maxlength="120" dir="ltr" autocomplete="email" value="${esc(m.email || "")}"></div>
+            <div class="field"><label>رقم الموبايل <b class="req">*</b></label><input name="phone" type="tel" maxlength="20" dir="ltr" inputmode="tel" autocomplete="tel" placeholder="01xxxxxxxxx" value="${esc(m.phone || "")}"></div>
+            <div class="field"><label>المنطقة / العنوان <b class="req">*</b></label><input name="area" maxlength="160" autocomplete="street-address" placeholder="مثال: المرج – شارع ..." value="${esc(m.area || "")}"></div>
+          </div>
+          ${CTYPES.map(t => xfHTML(t, m.type === t ? m : {})).join("")}
+          <details class="aopt" ${edit && ((m.interests || []).length || m.source) ? "open" : ""}>
+            <summary><span>بيانات اختيارية <small>(لو حابب)</small></span></summary>
+            <div class="field" style="margin-bottom:14px"><label>عرفتنا منين؟</label><select name="source">${opt(CSRC, m.source)}</select></div>
+            <div class="field"><label>مهتم بإيه؟ <small>(اختار أكتر من حاجة)</small></label>
+              <div class="achips">${CINT.map(x => `<label><input type="checkbox" name="interests" value="${esc(x)}" ${(m.interests || []).includes(x) ? "checked" : ""}><span>${esc(x)}</span></label>`).join("")}</div></div>
+            <label class="acheck"><input type="checkbox" name="offers" ${m.offers === true ? "checked" : ""}> ابعتولي العروض والخصومات</label>
+          </details>
+          <p class="apolicy">بتسجيلك أنت موافق على <a href="${BASE}policies.html#terms" target="_blank">الشروط</a> و<a href="${BASE}policies.html#privacy" target="_blank">سياسة الخصوصية</a>.</p>
+        </div>
         <p class="aerr" id="aErr" role="alert"></p>
-        <button class="btn btn-primary" type="submit">${edit ? "حفظ البيانات" : "دخول المتجر"}</button>
+        <div class="aprog" id="aProg" hidden></div>
+        <button class="btn btn-primary" type="submit" id="aGo">${edit ? "حفظ البيانات" : "دخول المتجر"}</button>
         ${edit ? `<button class="aout" id="aOut" type="button">تسجيل الخروج</button>` : ""}
       </form>`;
-    $("#aForm").addEventListener("submit", submit);
-    const out = $("#aOut"); if (out) out.onclick = () => { ME = null; try { localStorage.removeItem(CK); localStorage.removeItem(SEEN) } catch (e) {} paint(); toast("تم تسجيل الخروج"); gate() };
+    const F = $("#aForm"), go = $("#aGo");
+    const sync = () => { const t = (F.querySelector("[name=type]:checked") || {}).value || ""; F.dataset.type = t; F.querySelectorAll(".xf").forEach(x => x.hidden = x.dataset.for !== t); go.textContent = t === "زائر" ? "👀 ادخل كزائر" : edit ? "حفظ البيانات" : "دخول المتجر" };
+    F.addEventListener("change", e => { if (e.target.name === "type") sync(); if (e.target.type === "file") { const s = e.target.nextElementSibling, f = e.target.files[0]; if (s) s.textContent = f ? "📎 " + f.name : "📎 اختار صورة أو PDF (لحد 5 ميجا)" } });
+    sync();
+    F.addEventListener("submit", submit);
+    const out = $("#aOut"); if (out) out.onclick = () => { ME = null; try { localStorage.removeItem(CK); localStorage.removeItem(SEEN); localStorage.removeItem(VK) } catch (e) {} paint(); toast("تم تسجيل الخروج"); gate() };
   };
-  function submit(e) {
-    e.preventDefault();
-    const f = new FormData(e.target), g = k => String(f.get(k) || "").trim(), err = t => { $("#aErr").textContent = t; return false };
-    const name = g("name"), email = g("email").toLowerCase(), type = g("type"), area = g("area");
-    /* الأرقام العربي (٠١٢) بتتحول لإنجليزي، والمسافات والشُرط بتتشال */
-    const phone = g("phone").replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d)).replace(/[۰-۹]/g, d => "۰۱۲۳۴۵۶۷۸۹".indexOf(d)).replace(/[\s\-()]/g, "");
+  /* تصغير الصور قبل الرفع (أسرع وأوفر في المساحة) */
+  const shrink = file => new Promise(res => {
+    if (!/^image\//.test(file.type) || file.size < 400 * 1024) return res(file);
+    const img = new Image(), url = URL.createObjectURL(file);
+    img.onload = () => { const s = Math.min(1, 1600 / Math.max(img.width, img.height)), c = document.createElement("canvas"); c.width = Math.round(img.width * s); c.height = Math.round(img.height * s); c.getContext("2d").drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(url); c.toBlob(b => res(b && b.size < file.size ? new File([b], "x.jpg", {type: "image/jpeg"}) : file), "image/jpeg", .82) };
+    img.onerror = () => { URL.revokeObjectURL(url); res(file) }; img.src = url;
+  });
+  const uid = () => (crypto.randomUUID ? crypto.randomUUID() : "xxxxxxxx-xxxx-4xxx-8xxx-xxxxxxxxxxxx".replace(/x/g, () => (Math.random() * 16 | 0).toString(16)));
+  async function submit(e) {
+    e.preventDefault(); if (busy) return;
+    const F = e.target, f = new FormData(F), g = k => String(f.get(k) || "").trim(), err = t => { $("#aErr").textContent = t; return false };
+    const type = g("type");
+    if (type === "زائر") { store.set(VK, Date.now()); gated = false; document.documentElement.classList.remove("cust-gate"); close(); toast("أهلاً بيك 👀 تقدر تسجّل في أي وقت من زرار «تسجيل الدخول»"); track("visitor_enter", {}); return }
+    const name = g("name"), email = g("email").toLowerCase(), area = g("area"), phone = digits(g("phone"));
+    if (!CTYPES.includes(type)) return err("من فضلك اختار إنت مين");
     if (name.length < 2) return err("من فضلك اكتب اسمك");
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return err("من فضلك اكتب إيميل صحيح");
-    if (!/^(\+?20)?0?1[0125]\d{8}$/.test(phone) && !/^\+?\d{8,15}$/.test(phone)) return err("من فضلك اكتب رقم موبايل صحيح (مثال: 01012345678)");
+    if (!okPhone(phone)) return err("من فضلك اكتب رقم موبايل صحيح (مثال: 01012345678)");
     if (area.length < 3) return err("من فضلك اكتب المنطقة أو العنوان");
-    if (!CTYPES.includes(type)) return err("من فضلك اختار إنت مين: " + CTYPES.join(" / "));
+    /* الخانات الإضافية */
+    const prevDocs = (ME && ME.type === type && ME.docs) || {}, X = {}, files = {};
+    for (const [k, label, kind] of XF[type]) {
+      if (RULE(type, k) === "off") continue;
+      if (kind === "file") {
+        const file = F.querySelector(`[name=x_${k}]`).files[0];
+        if (file) { if (file.size > 5 * 1024 * 1024) return err(`«${label}» أكبر من 5 ميجا`); if (!/^image\/|application\/pdf/.test(file.type)) return err(`«${label}» لازم تكون صورة أو PDF`); files[k] = file }
+        else if (RULE(type, k) === "req" && !prevDocs[k]) return err(`من فضلك ارفع «${label}»`);
+        continue;
+      }
+      let v = g("x_" + k); if (kind === "tel" && v) { v = digits(v); if (!okPhone(v)) return err(`«${label}» مش رقم صحيح`) }
+      if (RULE(type, k) === "req" && !v) return err(`من فضلك اكتب «${label}»`);
+      if (v) X[k] = v.slice(0, 80);
+    }
+    if (CLUB.includes(type)) { X.consent_events = f.get("x_consent_events") === "on"; X.consent_ticker = f.get("x_consent_ticker") === "on" }
+    busy = true; const go = $("#aGo"), pr = $("#aProg"); go.disabled = true; err("");
+    /* رفع المستندات لمخزن خاص */
+    const docs = Object.assign({}, prevDocs), docPaths = {}, failed = [];
+    const keys = Object.keys(files);
+    if (keys.length && SB && !preview) {
+      const dir = "pending/" + uid() + "/";
+      for (let i = 0; i < keys.length; i++) {
+        const k = keys[i], label = XF[type].find(x => x[0] === k)[1];
+        pr.hidden = false; pr.textContent = `جاري رفع المستندات (${i + 1} من ${keys.length})…`;
+        try { const file = await shrink(files[k]), ext = file.type === "application/pdf" ? "pdf" : file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg", path = `${dir}${k}.${ext}`; await SB.upload("docs", path, file, p => pr.textContent = `جاري رفع «${label}»… ${p}٪`); docPaths[k] = path; docs[k] = true }
+        catch (x) { failed.push(label) }
+      }
+    }
+    pr.hidden = true;
     const isNew = !ok();
-    ME = {name, email, type, phone, area, source: g("source"), interests: f.getAll("interests"), offers: f.get("offers") === "on", since: (ME && ME.since) || new Date().toISOString()};
-    store.set(CK, ME); store.set(SEEN, Date.now());
-    logEvent("signup", {name, phone: ME.phone, area: ME.area, details: [
-      "الإيميل: " + email,
-      "نوع العميل: " + type,
-      ME.interests.length && "مهتم بـ: " + ME.interests.join("، "),
-      ME.source && "عرفنا من: " + ME.source,
-      "العروض: " + (ME.offers ? "موافق" : "لا"),
-      !isNew && "(تعديل بيانات)"
+    ME = {name, email, type, phone, area, x: X, docs, source: g("source"), interests: f.getAll("interests"), offers: f.get("offers") === "on", since: (ME && ME.since) || new Date().toISOString()};
+    if (X.ref_phone) ME.ref = X.ref_phone;
+    store.set(CK, ME); store.set(SEEN, Date.now()); try { localStorage.removeItem(VK) } catch (x) {}
+    const xl = XF[type].filter(([k, , kind]) => kind !== "file" && X[k]).map(([k, label]) => `${label}: ${X[k]}`);
+    logEvent("signup", {name, phone, area, details: [
+      "الإيميل: " + email, "نوع العميل: " + type, ...xl,
+      Object.keys(docPaths).length && "المستندات: " + Object.keys(docPaths).length + " ملف",
+      ME.interests.length && "مهتم بـ: " + ME.interests.join("، "), ME.source && "عرفنا من: " + ME.source,
+      "العروض: " + (ME.offers ? "موافق" : "لا"), !isNew && "(تعديل بيانات)"
     ].filter(Boolean).join("\n")});
+    /* أعضاء النادي والشركاء بيتسجلوا في جدول خاص بيهم في اللوحة */
+    if (CLUB.includes(type) && SB && !preview) {
+      const data = Object.fromEntries(Object.entries(X).filter(([k]) => !k.startsWith("consent_")));
+      Object.assign(data, {interests: ME.interests, source: ME.source || null, offers: ME.offers});
+      try { await SB.insert("members", {type, name, phone, email, area, data, docs: docPaths, consent_ticker: !!X.consent_ticker, consent_events: !!X.consent_events}) } catch (x) { console.warn("member:", x.message) }
+    }
     track(isNew ? "sign_up" : "login", {method: "email", customer_type: type});
+    busy = false; go.disabled = false;
     gated = false; document.documentElement.classList.remove("cust-gate");
-    paint(); fill(); close(); toast(isNew ? `أهلاً ${first(name)}، نورت المتجر ✓` : "تم حفظ بياناتك ✓");
+    paint(); fill(); close();
+    toast(failed.length ? `اتسجلت ✓ بس ما قدرناش نرفع: ${failed.join("، ")} – ابعتها على واتساب` : isNew ? `أهلاً ${first(name)}، نورت المتجر ✓` : "تم حفظ بياناتك ✓");
   }
   /* بنملا خانات الاسم والموبايل في الطلب والحجز تلقائي */
   const fill = () => { if (!ME) return; for (const [s, v] of [["#oName", ME.name], ["#oPhone", ME.phone], ["#oAddr", ME.area], ["input[name=name]", ME.name], ["input[name=phone]", ME.phone]]) for (const el of document.querySelectorAll(s)) if (!el.closest("#aModal") && !el.value && v) el.value = v };
   const close = () => { if (gated) return; modal.hidden = true; document.body.style.overflow = "" };
-  const open = () => { form(); modal.hidden = false; document.body.style.overflow = "hidden"; setTimeout(() => { const i = $("#aForm input[name=name]"); if (i && !i.value) i.focus() }, 50) };
-  /* المتجر مقفول لحد ما الزائر يسجّل (ما عدا وضع المعاينة من لوحة التحكم) */
+  const open = () => { form(); modal.hidden = false; document.body.style.overflow = "hidden" };
+  /* المتجر مقفول لحد ما الزائر يسجّل أو يختار «زائر» (ما عدا وضع المعاينة من لوحة التحكم) */
   const gate = () => { gated = true; document.documentElement.classList.add("cust-gate"); open() };
   if (btn) btn.onclick = open;
   $("#aClose").onclick = close;
   modal.addEventListener("click", e => { if (e.target === modal) close() });
   addEventListener("keydown", e => { if (e.key === "Escape" && !modal.hidden) close() });
   window.everestLogin = open;
+  window.everestRef = () => (ok() && ME.ref) || null;
   paint(); fill();
-  if (!ok() && !preview) gate();
+  if (!ok() && !visitor() && !preview) gate();
   else document.documentElement.classList.remove("cust-gate");
   /* زيارة جديدة لعميل مسجّل → بتظهر في اللوحة (مرة كل 6 ساعات بالكتير) */
   if (ok() && !preview && Date.now() - (+store.get(SEEN, 0) || 0) > 6 * 3600e3) { store.set(SEEN, Date.now()); logEvent("login", {name: ME.name, phone: ME.phone, area: ME.area, details: "الإيميل: " + ME.email + "\nنوع العميل: " + ME.type}) }
