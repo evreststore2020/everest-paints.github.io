@@ -383,7 +383,11 @@ if ($("#grid")) {
   $("#sort").addEventListener("change", e => { sort = e.target.value; renderGrid() });
   if (S.priceNote) $("#shop .toolbar").insertAdjacentHTML("afterend", `<p class="muted" style="font-size:13px;margin:-14px 0 20px">ℹ️ ${esc(S.priceNote)}</p>`);
   $$("[data-goto-cat]").forEach(a => a.addEventListener("click", () => everestSetCat(a.dataset.gotoCat)));
-  if ($("#footProducts")) $("#footProducts").innerHTML = P.filter(p => p.best).map(p => `<li><a href="${pageUrl(p)}">${esc(p.ar)}</a></li>`).join("");
+  if ($("#footProducts")) {
+    $("#footProducts").innerHTML = P.filter(p => p.best).map(p => `<li><a href="${pageUrl(p)}">${esc(p.ar)}</a></li>`).join("");
+    /* عنوان العمود: المنتجات المعلّم عليها «الأكثر طلباً» في اللوحة */
+    const h = $("#footProducts").previousElementSibling; if (h && h.tagName === "H4") h.textContent = "الأكثر طلباً";
+  }
   renderCats(); renderGrid();
 }
 
