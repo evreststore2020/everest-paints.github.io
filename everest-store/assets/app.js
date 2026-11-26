@@ -761,7 +761,7 @@ if (SB && !preview) SB.select("site_data", "select=value&key=eq.ticker").then(r 
       return `<div class="field"><label>${esc(label)}${star}</label><input name="${nm}" ${kind === "tel" ? 'type="tel" dir="ltr" inputmode="tel" placeholder="01xxxxxxxxx"' : kind === "number" ? 'type="number" min="0" max="70" inputmode="numeric"' : ""} maxlength="80" data-req="${req ? 1 : ""}" value="${esc(X[k] || "")}">${hint ? `<small class="ahint">${esc(hint)}</small>` : ""}</div>`;
     };
     return `<div class="xf" data-for="${t}">
-      ${club ? `<div class="club-head"><b>🏅 ${t === "فني" ? "انضم لنادي إفرست" : "شريك نادي إفرست"}</b><small>${t === "فني" ? "عمولة على العملاء اللي بتجيبهم، دعوات للسمينارات والفعاليات، وتكريم في فيديوهاتنا." : "أسعار ومتابعة خاصة للمشاريع، ودعوات للسمينارات والفعاليات."}</small></div>` : ""}
+      ${club ? `<div class="club-head"><b>🏅 ${t === "فني" ? "انضم لنادي إفرست" : "شريك نادي إفرست"}</b><small>${t === "فني" ? "دعوات للسمينارات والفعاليات، وتكريم لشغلك في فيديوهاتنا وعلى موقعنا." : "أسعار ومتابعة خاصة للمشاريع، ودعوات للسمينارات والفعاليات."}</small></div>` : ""}
       <div class="afields">${rows.map(f).join("")}</div>
       ${club ? `<label class="acheck"><input type="checkbox" name="x_consent_events" ${X.consent_events !== false ? "checked" : ""}> ابعتولي دعوات الفعاليات والسمينارات</label>
       <label class="acheck"><input type="checkbox" name="x_consent_ticker" ${X.consent_ticker ? "checked" : ""}> موافق اسمي يظهر في «نجوم نادي إفرست» على الموقع</label>
