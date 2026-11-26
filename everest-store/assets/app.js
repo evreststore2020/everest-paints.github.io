@@ -34,19 +34,22 @@ const J = "https://www.jotun.com/eg-ar/decorative/products/";
 const IMG = id => `https://cdn-pim.jotun.com/images/ProductImages/${id}/1300x1334/${id}.png?format=webp&width=562&quality=70`;
 const JOTUN_LOGO = "https://www.jotun.com/siteassetsjot03/jotun-logo-new.svg";
 const wa = t => `https://wa.me/${S.whatsapp}?text=${encodeURIComponent(String(t).replace(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE0F}\u{200D}]/gu, "").replace(/[ \t]{2,}/g, " ").trim())}`;
-const unitWord = p => p.u === "كجم" ? "كجم" : "لتر";
+/* الوحدة بتتكتب من اللوحة (لتر، كجم، قطعة، كرتونة، شيكارة، برميل…) */
+const uName = u => String(u || "لتر").trim() || "لتر";
+const uBy = u => uName(u) === "كجم" ? "كيلو" : uName(u);   // «يُباع بالكيلو / بالقطعة / بالكرتونة»
+const unitWord = p => uName(p.u);
 /* العبوات: كل عبوة {s: الحجم, u: الوحدة, p: سعر العبوة, v: النوع (أبيض/ألوان خاصة...)}
    المنتجات القديمة اللي ليها سعر للتر + أحجام بتتحول تلقائياً */
 const PK = p => p.packs && p.packs.length ? p.packs : (p.sizes || []).map(s => ({s, u: p.u, p: p.price != null ? +(p.price * s).toFixed(2) : null}));
 const pkKey = k => `${k.s}${k.u}${k.v ? "~" + k.v : ""}`;
-const pkLabel = k => `${num(k.s)} ${k.u === "كجم" ? "كجم" : "لتر"}${k.v ? " – " + k.v : ""}`;
+const pkLabel = k => `${num(k.s)} ${uName(k.u)}${k.v ? " – " + k.v : ""}`;
 const isWhite = k => !k.v || k.v === "أبيض";
 const unitPrice = p => { const L = PK(p).filter(k => k.p != null && isWhite(k)); return L.length ? Math.min(...L.map(k => k.p / k.s)) : (p.packs && p.packs.length ? null : p.price ?? null) };
 const hasPrice = p => PK(p).some(k => k.p != null) || (!PK(p).length && p.price != null);
 /* «لون»: عبوة بيضا بتتلوّن في الماكينة – سعرها مش في قايمة جوتن، فبيتأكد مع العميل.
    مفتاحها في السلة = مفتاح العبوة البيضا + «~لون». المنتجات اللي مبتتلوّنش بتتقفل من اللوحة (settings.noTint) */
 const COLOR = "لون", CSUF = "~لون";
-const canTint = p => { const L = PK(p); if (!L.some(k => isWhite(k) && k.p != null) || L.some(k => k.v === "ألوان خاصة")) return false; return Array.isArray(S.noTint) ? !S.noTint.includes(p.id) : p.cat !== "prep" };
+const canTint = p => { const L = PK(p); if (!L.some(k => isWhite(k) && k.p != null) || L.some(k => k.v === "ألوان خاصة")) return false; return Array.isArray(S.noTint) ? !S.noTint.includes(p.id) : p.cat !== "prep" && ["لتر", "كجم"].includes(uName(p.u)) };
 const findPk = (p, key) => {
   key = String(key || "");
   if (key.endsWith(CSUF)) { const b = PK(p).find(k => pkKey(k) === key.slice(0, -CSUF.length)); return b && isWhite(b) && canTint(p) ? {s: b.s, u: b.u, v: COLOR, p: null} : undefined }
@@ -223,7 +226,7 @@ function renderCart() {
   $("#items").innerHTML = T.L.length ? T.L.map(l => {
     const th = l.sample ? `<i class="th" style="background:${l.hex}"></i>` : SRC(l.p) ? `<img class="th" src="${esc(SRC(l.p))}" alt="">` : `<i class="th" style="background:${l.p.col}"></i>`;
     const title = l.sample ? `عيّنة لون ${esc(l.code)} ${esc(l.name)}` : esc(l.p.ar);
-    const sub = l.sample ? "عيّنة لون" : l.size ? `عبوة ${unitLabel(l.p, l.size)}` : `بال${l.p.u === "كجم" ? "كيلو" : "لتر"}`;
+    const sub = l.sample ? "عيّنة لون" : l.size ? `عبوة ${unitLabel(l.p, l.size)}` : `بال${uBy(l.p.u)}`;
     const tag = l.fixed ? `<span class="ltag fixed">سعر ثابت</span>` : `<span class="ltag tint">${l.p && tinted(l.p, l.size) ? "🎨 يتلوّن – السعر بعد التأكيد" : l.sum == null ? "السعر بعد التأكيد" : "الدفع بعد التأكيد"}</span>`;
     return `<div class="ci">${th}<div class="t"><b>${title}</b><small>${sub} · ${l.sum == null ? (l.sample ? "مجاناً / عند التأكيد" : "السعر عند التأكيد") : fmt(l.sum)}</small>${tag}</div>
       <div class="qty"><button data-k="${esc(l.k)}" data-d="1" aria-label="زيادة">+</button><span>${num(l.n)}</span><button data-k="${esc(l.k)}" data-d="-1" aria-label="نقص">−</button></div></div>`;
@@ -347,7 +350,7 @@ function cardPrice(p) {
 function sizesHTML(p) {
   const L = PK(p);
   return L.length ? `<small>العبوة:</small>` + L.map(k => `<button data-pack="${esc(pkKey(k))}" class="${sel[p.id] === pkKey(k) ? "on" : ""}">${pkLabel(k)}</button>`).join("")
-    : `<small>يُباع بال${p.u === "كجم" ? "كيلو" : "لتر"} — اسأل عن العبوات المتاحة</small>`;
+    : `<small>يُباع بال${esc(uBy(p.u))} — اسأل عن العبوات المتاحة</small>`;
 }
 const colorHTML = p => canTint(p) ? `<div class="tintsw" role="group" aria-label="اللون"><button type="button" data-color="0" class="${colorOn[p.id] ? "" : "on"}">⚪ أبيض</button><button type="button" data-color="1" class="${colorOn[p.id] ? "on" : ""}">🎨 لون</button></div>` : "";
 /* لو اختار «لون» وهو على عبوة مش بيضا، بنرجعه لأكبر عبوة بيضا */
@@ -399,10 +402,12 @@ if ($("#grid")) {
   /* بنعرض جزء من المنتجات وزرار «عرض المزيد» بدل قايمة طويلة */
   const PAGE = () => innerWidth < 700 ? 6 : 12; let shown = PAGE();
   window.everestSetCat = c => { cat = c; shown = innerWidth < 700 ? 6 : 12; renderCats(); renderGrid() };
+  /* الأقسام الجديدة اللي اتكتبت من اللوحة بتظهر لوحدها */
+  [...new Set(P.map(p => p.cat).filter(Boolean))].forEach(c => { if (!CATS.some(x => x.id === c)) CATS.push({id: c, name: c, img: null}) });
   const renderCats = () => $("#cats").innerHTML = CATS.map(c => {
     const n = c.id === "all" ? P.length : P.filter(p => p.cat === c.id).length; if (!n) return "";
     const vis = c.img || c.image ? `<img src="${c.img ? IMG(c.img) : BASE + c.image}" alt="" loading="lazy">` : `<div class="sw" style="background:${c.id === "all" ? "conic-gradient(#c8102e,#d9a441,#717e79,#0b2a4a,#c8102e)" : "#56616d"}"></div>`;
-    return `<button class="cat ${c.id === cat ? "active" : ""}" data-c="${c.id}">${vis}<b>${c.name}</b><small>${num(n)} منتج</small></button>`;
+    return `<button class="cat ${c.id === cat ? "active" : ""}" data-c="${esc(c.id)}">${vis}<b>${esc(c.name)}</b><small>${num(n)} منتج</small></button>`;
   }).join("");
   const renderGrid = () => {
     let list = P.filter(p => (cat === "all" || p.cat === cat) && (!q || (p.ar + p.en + p.line).toLowerCase().includes(q)));
