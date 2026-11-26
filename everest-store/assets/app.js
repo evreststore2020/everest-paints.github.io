@@ -366,7 +366,9 @@ if ($("#bestSlider")) {
 }
 if ($("#grid")) {
   let cat = "all", q = "", sort = "def";
-  window.everestSetCat = c => { cat = c; renderCats(); renderGrid() };
+  /* بنعرض جزء من المنتجات وزرار «عرض المزيد» بدل قايمة طويلة */
+  const PAGE = () => innerWidth < 700 ? 6 : 12; let shown = PAGE();
+  window.everestSetCat = c => { cat = c; shown = innerWidth < 700 ? 6 : 12; renderCats(); renderGrid() };
   const renderCats = () => $("#cats").innerHTML = CATS.map(c => {
     const n = c.id === "all" ? P.length : P.filter(p => p.cat === c.id).length; if (!n) return "";
     const vis = c.img || c.image ? `<img src="${c.img ? IMG(c.img) : BASE + c.image}" alt="" loading="lazy">` : `<div class="sw" style="background:${c.id === "all" ? "conic-gradient(#c8102e,#d9a441,#717e79,#0b2a4a,#c8102e)" : "#56616d"}"></div>`;
@@ -376,10 +378,13 @@ if ($("#grid")) {
     let list = P.filter(p => (cat === "all" || p.cat === cat) && (!q || (p.ar + p.en + p.line).toLowerCase().includes(q)));
     if (sort === "asc") list = [...list].sort((a, b) => (unitPrice(a) ?? Infinity) - (unitPrice(b) ?? Infinity));
     if (sort === "desc") list = [...list].sort((a, b) => (unitPrice(b) ?? -1) - (unitPrice(a) ?? -1));
-    $("#grid").innerHTML = list.length ? list.map(cardHTML).join("") : `<div class="empty">لا توجد منتجات مطابقة. <a href="${wa("أبحث عن منتج: " + q)}" style="color:var(--accent)">اسألنا على واتساب</a></div>`;
+    const more = list.length - shown;
+    $("#grid").innerHTML = list.length ? list.slice(0, shown).map(cardHTML).join("") + (more > 0 ? `<div class="more-wrap"><button class="btn btn-ghost-dark more-btn" id="moreBtn" type="button">عرض المزيد <small>(${num(more)} منتج)</small></button></div>` : "") : `<div class="empty">لا توجد منتجات مطابقة. <a href="${wa("أبحث عن منتج: " + q)}" style="color:var(--accent)">اسألنا على واتساب</a></div>`;
   };
-  $("#cats").addEventListener("click", e => { const b = e.target.closest("[data-c]"); if (!b) return; cat = b.dataset.c; renderCats(); renderGrid() });
-  let st; $("#q").addEventListener("input", e => { q = e.target.value.trim().toLowerCase(); renderGrid(); clearTimeout(st); st = setTimeout(() => q && track("search", {search_term: q}), 800) });
+  $("#grid").addEventListener("click", e => { if (e.target.closest("#moreBtn")) { shown += PAGE(); renderGrid() } });
+  const resetShown = () => { shown = PAGE() };
+  $("#cats").addEventListener("click", e => { const b = e.target.closest("[data-c]"); if (!b) return; cat = b.dataset.c; resetShown(); renderCats(); renderGrid() });
+  let st; $("#q").addEventListener("input", e => { q = e.target.value.trim().toLowerCase(); resetShown(); renderGrid(); clearTimeout(st); st = setTimeout(() => q && track("search", {search_term: q}), 800) });
   $("#sort").addEventListener("change", e => { sort = e.target.value; renderGrid() });
   if (S.priceNote) $("#shop .toolbar").insertAdjacentHTML("afterend", `<p class="muted" style="font-size:13px;margin:-14px 0 20px">ℹ️ ${esc(S.priceNote)}</p>`);
   $$("[data-goto-cat]").forEach(a => a.addEventListener("click", () => everestSetCat(a.dataset.gotoCat)));
@@ -705,6 +710,14 @@ if (PD && $("#pdBuy")) {
         <a href="mailto:dashtechonlogy@gmail.com" dir="ltr"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>dashtechonlogy@gmail.com</a>
       </div>
     </div>`);
+}
+
+/* ---------- شريط الخدمات السريعة تحت أول صورة (العميل يوصل لأي خدمة بضغطة) ---------- */
+{
+  const hero = document.querySelector("section.hero");
+  const Q = [["#shop", "🛒", "المنتجات والأسعار"], ["#colours", "🎨", "كتالوج الألوان"], ["#packages", "🏠", "باقات الشقق"], ["#calc", "🧮", "حاسبة الدهان"], ["#viz", "🖌️", "نسّق ألوانك"], ["#videos", "▶️", "الفيديوهات"], ["#contact", "📅", "احجز معاينة مجانية"], ["#pro", "🏗️", "للمقاولين"]]
+    .filter(([id]) => { const el = document.querySelector(id); return el && !(id === "#videos" && !(DATA.videos || []).some(v => v.active !== false && v.src)) });
+  if (hero && Q.length) hero.insertAdjacentHTML("afterend", `<nav class="quickbar" aria-label="خدماتنا"><div class="wrap"><div class="qb-row">${Q.map(([h, i, t]) => `<a href="${h}"><span>${i}</span>${t}</a>`).join("")}</div></div></nav>`);
 }
 
 /* ---------- اللوجو الجديد (الأصفر) في كل الصفحات – لوجو جوتن زي ما هو ---------- */
