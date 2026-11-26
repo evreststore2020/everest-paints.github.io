@@ -43,7 +43,15 @@ const pkLabel = k => `${num(k.s)} ${k.u === "كجم" ? "كجم" : "لتر"}${k.v
 const isWhite = k => !k.v || k.v === "أبيض";
 const unitPrice = p => { const L = PK(p).filter(k => k.p != null && isWhite(k)); return L.length ? Math.min(...L.map(k => k.p / k.s)) : (p.packs && p.packs.length ? null : p.price ?? null) };
 const hasPrice = p => PK(p).some(k => k.p != null) || (!PK(p).length && p.price != null);
-const findPk = (p, key) => PK(p).find(k => pkKey(k) === key);
+/* «لون»: عبوة بيضا بتتلوّن في الماكينة – سعرها مش في قايمة جوتن، فبيتأكد مع العميل.
+   مفتاحها في السلة = مفتاح العبوة البيضا + «~لون». المنتجات اللي مبتتلوّنش بتتقفل من اللوحة (settings.noTint) */
+const COLOR = "لون", CSUF = "~لون";
+const canTint = p => { const L = PK(p); if (!L.some(k => isWhite(k) && k.p != null) || L.some(k => k.v === "ألوان خاصة")) return false; return Array.isArray(S.noTint) ? !S.noTint.includes(p.id) : p.cat !== "prep" };
+const findPk = (p, key) => {
+  key = String(key || "");
+  if (key.endsWith(CSUF)) { const b = PK(p).find(k => pkKey(k) === key.slice(0, -CSUF.length)); return b && isWhite(b) && canTint(p) ? {s: b.s, u: b.u, v: COLOR, p: null} : undefined }
+  return PK(p).find(k => pkKey(k) === key);
+};
 const packPrice = (p, key) => { if (!key) return p.price ?? null; const k = findPk(p, key); return k ? k.p : null };
 const unitLabel = (p, key) => { const k = key && findPk(p, key); return k ? pkLabel(k) : unitWord(p) };
 /* ---------- الدفع: إنستاباي وفودافون كاش ----------
@@ -61,7 +69,7 @@ const METHODS = [
 ].filter(m => m[2]);
 const METHOD_NAME = Object.fromEntries(METHODS.map(m => [m[0], m[1]]));
 const TINT = "ألوان خاصة";
-const tinted = (p, key) => { const k = key && findPk(p, key); return !!(k && k.v === TINT) };
+const tinted = (p, key) => { const k = key && findPk(p, key); return !!(k && (k.v === TINT || k.v === COLOR)) };
 const payTag = (p, key) => packPrice(p, key) == null ? "" : tinted(p, key) ? `<small class="paytag tint">🎨 يتلوّن حسب طلبك – نأكد السعر قبل الدفع</small>` : PAY.instant !== false ? `<small class="paytag fixed">✓ سعر ثابت – ادفع أونلاين فوراً</small>` : "";
 const pageUrl = p => PAGES && !PAGES.has(p.id) ? `${BASE}product.html?id=${encodeURIComponent(p.id)}` : `${BASE}p/${p.id}.html`;
 /* تسجيل الطلبات والحجوزات في جوجل شيت (لو مربوط) */
@@ -163,7 +171,7 @@ let disc = store.get("everest-disc", null);
 const save = () => { store.set(CART_KEY, cart); store.set("everest-disc", disc) };
 function addToCart(key, n, silent) {
   cart[key] = (cart[key] || 0) + n; if (cart[key] <= 0) delete cart[key]; save(); renderCart();
-  if (n > 0) { const [id, s] = key.split("|"); const p = byId(id); track("add_to_cart", {currency: "EGP", value: p ? (packPrice(p, s ? +s : null) || 0) * n : 0, items: [{item_id: id, item_name: p ? p.en : "colour sample " + s}]}); if (!silent) toast("تمت الإضافة للسلة ✓") }
+  if (n > 0) { const [id, s] = key.split("|"); const p = byId(id); track("add_to_cart", {currency: "EGP", value: p ? (packPrice(p, s || null) || 0) * n : 0, items: [{item_id: id, item_name: p ? p.en : "colour sample " + s}]}); if (!silent) toast("تمت الإضافة للسلة ✓") }
 }
 window.everestAdd = addToCart;
 function cartLines() {
@@ -216,10 +224,11 @@ function renderCart() {
     const th = l.sample ? `<i class="th" style="background:${l.hex}"></i>` : SRC(l.p) ? `<img class="th" src="${esc(SRC(l.p))}" alt="">` : `<i class="th" style="background:${l.p.col}"></i>`;
     const title = l.sample ? `عيّنة لون ${esc(l.code)} ${esc(l.name)}` : esc(l.p.ar);
     const sub = l.sample ? "عيّنة لون" : l.size ? `عبوة ${unitLabel(l.p, l.size)}` : `بال${l.p.u === "كجم" ? "كيلو" : "لتر"}`;
-    const tag = l.fixed ? `<span class="ltag fixed">سعر ثابت</span>` : `<span class="ltag tint">${l.sum == null ? "السعر بعد التأكيد" : l.p && tinted(l.p, l.size) ? "يتلوّن – بعد التأكيد" : "الدفع بعد التأكيد"}</span>`;
+    const tag = l.fixed ? `<span class="ltag fixed">سعر ثابت</span>` : `<span class="ltag tint">${l.p && tinted(l.p, l.size) ? "🎨 يتلوّن – السعر بعد التأكيد" : l.sum == null ? "السعر بعد التأكيد" : "الدفع بعد التأكيد"}</span>`;
     return `<div class="ci">${th}<div class="t"><b>${title}</b><small>${sub} · ${l.sum == null ? (l.sample ? "مجاناً / عند التأكيد" : "السعر عند التأكيد") : fmt(l.sum)}</small>${tag}</div>
       <div class="qty"><button data-k="${esc(l.k)}" data-d="1" aria-label="زيادة">+</button><span>${num(l.n)}</span><button data-k="${esc(l.k)}" data-d="-1" aria-label="نقص">−</button></div></div>`;
   }).join("") : `<p style="color:var(--muted);text-align:center;padding:40px 0">السلة فارغة</p>`;
+  { const oc = $("#oColor"), need = T.L.some(l => l.p && l.size && String(l.size).endsWith(CSUF)); if (oc) { oc.classList.toggle("need", need); oc.placeholder = need ? "🎨 اكتب كود اللون (مثلاً 1024 أو اسمه) – مهم" : oc.dataset.ph || oc.placeholder; if (!oc.dataset.ph && !need) oc.dataset.ph = oc.placeholder } }
   $("#subtotal").textContent = fmt(T.sub);
   $("#discRow").hidden = !disc; if (disc) { $("#discLabel").textContent = `${disc.label} (${num(disc.percent)}٪)`; $("#discVal").textContent = "− " + fmt(T.d) }
   $("#total").textContent = fmt(T.tot); $("#cartCount").textContent = num(T.cnt); $("#totNote").style.display = T.unknown ? "block" : "none";
@@ -326,8 +335,11 @@ const CATS = [
   {id: "wood", name: "دهانات أخشاب", img: null},
   {id: "industrial", name: "صناعية ومعادن", img: null}
 ];
+const colorOn = {};
+const keyOf = p => sel[p.id] == null ? "" : sel[p.id] + (colorOn[p.id] && canTint(p) ? CSUF : "");
 const sel = {}; P.forEach(p => { const L = PK(p), W = L.filter(isWhite); const d = (W.length ? W : L).slice().sort((a, b) => b.s - a.s)[0]; sel[p.id] = d ? pkKey(d) : null });
 function cardPrice(p) {
+  if (colorOn[p.id] && canTint(p)) return `<div class="price"><span class="ask">السعر بعد التأكيد</span> <small>/ ${unitLabel(p, keyOf(p))}</small><small class="paytag tint">🎨 بيتلوّن في الماكينة – نأكد السعر معاك قبل الدفع</small></div>`;
   const pr = packPrice(p, sel[p.id]);
   if (pr == null) return `<div class="price"><span class="ask">السعر عند الطلب</span></div>`;
   return `<div class="price"><b>${num(Math.round(pr))}</b> <small>ج.م / ${unitLabel(p, sel[p.id])}</small>${payTag(p, sel[p.id])}</div>`;
@@ -337,6 +349,19 @@ function sizesHTML(p) {
   return L.length ? `<small>العبوة:</small>` + L.map(k => `<button data-pack="${esc(pkKey(k))}" class="${sel[p.id] === pkKey(k) ? "on" : ""}">${pkLabel(k)}</button>`).join("")
     : `<small>يُباع بال${p.u === "كجم" ? "كيلو" : "لتر"} — اسأل عن العبوات المتاحة</small>`;
 }
+const colorHTML = p => canTint(p) ? `<div class="tintsw" role="group" aria-label="اللون"><button type="button" data-color="0" class="${colorOn[p.id] ? "" : "on"}">⚪ أبيض</button><button type="button" data-color="1" class="${colorOn[p.id] ? "on" : ""}">🎨 لون</button></div>` : "";
+/* لو اختار «لون» وهو على عبوة مش بيضا، بنرجعه لأكبر عبوة بيضا */
+function pickColor(p, on) {
+  colorOn[p.id] = on;
+  const k = findPk(p, sel[p.id]);
+  if (on && !(k && isWhite(k))) { const W = PK(p).filter(x => isWhite(x) && x.p != null).sort((a, b) => b.s - a.s)[0]; if (W) sel[p.id] = pkKey(W) }
+}
+function pickPack(p, key) { sel[p.id] = key; const k = findPk(p, key); if (!(k && isWhite(k))) colorOn[p.id] = false }
+function addSel(p) {
+  const key = keyOf(p);
+  if (key.endsWith(CSUF)) { addToCart(p.id + "|" + key, 1, true); toast("تمت الإضافة ✓ – اكتب كود اللون في السلة") }
+  else addToCart(p.id + "|" + key, 1);
+}
 const cardHTML = p => `
       <article class="card" data-id="${p.id}">
         <a class="vis" href="${pageUrl(p)}">${p.best ? '<span class="tag">الأكثر طلباً</span>' : p.isNew ? '<span class="tag">جديد</span>' : ""}${thumb(p)}</a>
@@ -344,7 +369,7 @@ const cardHTML = p => `
           <div class="line">${esc(p.line)}</div>
           <h3><a href="${pageUrl(p)}">${esc(p.ar)}</a></h3><div class="en">${esc(p.en)}</div>
           <div class="feats">${(p.f || []).map(x => `<span>${esc(x)}</span>`).join("")}</div>
-          <div class="sizes">${sizesHTML(p)}</div>
+          <div class="sizes">${sizesHTML(p)}</div>${colorHTML(p)}
           <div class="links"><a class="spec" href="${pageUrl(p)}">التفاصيل</a>${p.url ? `<a class="spec" href="${J + p.url}" target="_blank" rel="noopener">المواصفات على موقع جوتن ↗</a>` : ""}</div>
           <div class="foot">${cardPrice(p)}<button class="add" data-add>${!hasPrice(p) ? "أضف لطلب السعر" : "أضف للسلة"}</button></div>
         </div>
@@ -353,8 +378,13 @@ const cardHTML = p => `
 document.addEventListener("click", e => {
   const card = e.target.closest(".card[data-id]"); if (!card) return; const p = byId(card.dataset.id); if (!p) return;
   const sb = e.target.closest("[data-pack]");
-  if (sb) { sel[p.id] = sb.dataset.pack; $$(`.card[data-id="${p.id}"]`).forEach(c => { c.querySelectorAll("[data-pack]").forEach(x => x.classList.toggle("on", x.dataset.pack === sel[p.id])); c.querySelector(".foot .price").outerHTML = cardPrice(p) }); return }
-  if (e.target.closest("[data-add]")) addToCart(p.id + "|" + (sel[p.id] ?? ""), 1);
+  const cb = e.target.closest("[data-color]");
+  if (sb || cb) {
+    if (sb) pickPack(p, sb.dataset.pack); else pickColor(p, cb.dataset.color === "1");
+    $$(`.card[data-id="${p.id}"]`).forEach(c => { c.querySelectorAll("[data-pack]").forEach(x => x.classList.toggle("on", x.dataset.pack === sel[p.id])); c.querySelectorAll("[data-color]").forEach(x => x.classList.toggle("on", (x.dataset.color === "1") === !!colorOn[p.id])); c.querySelector(".foot .price").outerHTML = cardPrice(p) });
+    return;
+  }
+  if (e.target.closest("[data-add]")) addSel(p);
 });
 if ($("#bestSlider")) {
   const best = [...P.filter(p => p.best), ...P.filter(p => !p.best && SRC(p))].slice(0, 8);
@@ -682,10 +712,10 @@ if (document.body.dataset.dynamic) {
 }
 if (PD && $("#pdBuy")) {
   $("#pdAdd").textContent = !hasPrice(PD) ? "أضف لطلب السعر" : "أضف للسلة";
-  track("view_item", {currency: "EGP", value: packPrice(PD, sel[PD.id]) || 0, items: [{item_id: PD.id, item_name: PD.en}]});
-  const draw = () => { $("#pdSizes").innerHTML = sizesHTML(PD); $("#pdPrice").outerHTML = cardPrice(PD).replace('class="price"', 'class="price" id="pdPrice"') + (S.priceNote ? `<small class="muted" style="display:block">${esc(S.priceNote)}</small>` : "") };
-  $("#pdSizes").addEventListener("click", e => { const b = e.target.closest("[data-pack]"); if (!b) return; sel[PD.id] = b.dataset.pack; draw() });
-  $("#pdAdd").onclick = () => { addToCart(PD.id + "|" + (sel[PD.id] ?? ""), 1, true); window.everestOpenCart && everestOpenCart() };
+  track("view_item", {currency: "EGP", value: packPrice(PD, keyOf(PD)) || 0, items: [{item_id: PD.id, item_name: PD.en}]});
+  const draw = () => { $("#pdSizes").innerHTML = sizesHTML(PD) + colorHTML(PD); $("#pdPrice").outerHTML = cardPrice(PD).replace('class="price"', 'class="price" id="pdPrice"') + (S.priceNote ? `<small class="muted" style="display:block">${esc(S.priceNote)}</small>` : "") };
+  $("#pdSizes").addEventListener("click", e => { const b = e.target.closest("[data-pack]"), c = e.target.closest("[data-color]"); if (b) pickPack(PD, b.dataset.pack); else if (c) pickColor(PD, c.dataset.color === "1"); else return; draw() });
+  $("#pdAdd").onclick = () => { addToCart(PD.id + "|" + keyOf(PD), 1, true); window.everestOpenCart && everestOpenCart() };
   $("#pdAsk").href = wa(`مرحباً، أستفسر عن ${PD.ar} (${PD.en})`);
   draw();
 }
