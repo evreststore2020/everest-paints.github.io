@@ -579,7 +579,11 @@ if ($("#pkgs")) {
 /* ---------- أعمالنا ---------- */
 if ($("#proj")) {
   const PR = [["2029685","شقة سكنية فاخرة","المعادي","سكني"],["6538933","غرفة معيشة عصرية","التجمع","سكني"],["36284862","واجهة مبنى تجاري","مدينة نصر","تجاري"],["7746462","غرفة نوم أنيقة","الزمالك","سكني"],["34909557","صالة عرض","الشيخ زايد","تجاري"],["38800602","استوديو حديث","المعادي","سكني"]];
-  $("#proj").innerHTML = PR.map(p => `<figure><img loading="lazy" src="https://images.pexels.com/photos/${p[0]}/pexels-photo-${p[0]}.jpeg?auto=compress&cs=tinysrgb&h=600&w=800" alt="${p[1]} - ${p[2]}"><figcaption><small>${p[3]}</small><div><b>${p[1]}</b> – ${p[2]}</div></figcaption></figure>`).join("");
+  /* لو فيه صور حقيقية مرفوعة من اللوحة (settings.projects) بتظهر هي بس، غير كده صور توضيحية */
+  const REAL = (Array.isArray(S.projects) ? S.projects : []).filter(x => x && x.active !== false && /^https:\/\/[^\s"'<>]+$/.test(String(x.src || "")));
+  const L = REAL.length ? REAL.map(x => [x.src, String(x.title || ""), String(x.area || ""), String(x.kind || "")])
+    : PR.map(p => [`https://images.pexels.com/photos/${p[0]}/pexels-photo-${p[0]}.jpeg?auto=compress&cs=tinysrgb&h=600&w=800`, p[1], p[2], p[3]]);
+  $("#proj").innerHTML = L.map(p => `<figure><img loading="lazy" src="${esc(p[0])}" alt="${esc([p[1], p[2]].filter(Boolean).join(" - ") || "من أعمال إفرست")}"><figcaption>${p[3] ? `<small>${esc(p[3])}</small>` : ""}<div><b>${esc(p[1])}</b>${p[2] ? " – " + esc(p[2]) : ""}</div></figcaption></figure>`).join("");
 }
 
 /* ---------- الفيديوهات ---------- */
