@@ -631,6 +631,33 @@ if ($("#proj")) {
   window.everestProjExtra = G => { const X = (G || []).filter(g => /^https:\/\/[^\s"'<>]+$/.test(String(g.url || ""))).map(g => [g.url, String(g.title || ""), String(g.area || ""), "", String(g.by || ""), String(g.pro || "")]); if (X.length) $("#proj").innerHTML = (REAL.length ? L : []).concat(X).map(fig).join("") };
 }
 
+/* ---------- الكتالوجات وأفكار التشطيب والديكور (بتترفع من اللوحة) ---------- */
+{
+  const okU = u => /^https?:\/\/[^\s"'<>]+$/.test(String(u || ""));
+  const CL = (Array.isArray(S.catalogs) ? S.catalogs : []).filter(c => c && c.active !== false && okU(c.url));
+  const anchor = $("#projects") || $("#videos");
+  if (CL.length && anchor) {
+    const ICON = {pdf: "📄", image: "🖼️", link: "🔗"}, BTN = {pdf: "افتح الكتالوج (PDF)", image: "شوف الصورة", link: "افتح اللينك ↗"};
+    const tags = [...new Set(CL.map(c => String(c.tag || "").trim()).filter(Boolean))];
+    const card = c => `<a class="ctl" href="${esc(c.url)}" target="_blank" rel="noopener" data-ctl="${esc(c.title || "")}" data-tag="${esc(String(c.tag || "").trim())}">
+      <div class="ctl-cv">${okU(c.cover) ? `<img src="${esc(c.cover)}" alt="" loading="lazy">` : `<span>${ICON[c.type] || "📄"}</span>`}<i>${c.type === "pdf" ? "PDF" : c.type === "image" ? "صورة" : "لينك"}</i></div>
+      <div class="ctl-b">${c.tag ? `<small>${esc(c.tag)}</small>` : ""}<b>${esc(c.title || "كتالوج")}</b>${c.desc ? `<p>${esc(c.desc)}</p>` : ""}<span class="ctl-go">${BTN[c.type] || BTN.link}</span></div></a>`;
+    anchor.insertAdjacentHTML(anchor.id === "projects" ? "afterend" : "beforebegin", `<section id="catalogs" style="background:var(--soft)"><div class="wrap">
+      <div class="sec-head center"><div class="eyebrow">كتالوجات وأفكار</div><h2 class="title">${esc(S.catalogsTitle || "كتالوجات التشطيب والديكور")}</h2><p class="lead">اتفرّج على الكتالوجات والأفكار، ولو عجبك حاجة ابعتلنا ونساعدك تنفذها.</p></div>
+      ${tags.length > 1 ? `<div class="ctl-tags"><button class="on" data-ctag="">الكل</button>${tags.map(t => `<button data-ctag="${esc(t)}">${esc(t)}</button>`).join("")}</div>` : ""}
+      <div class="ctl-grid">${CL.map(card).join("")}</div></div></section>`);
+    const sec = $("#catalogs");
+    sec.addEventListener("click", e => {
+      const t = e.target.closest("[data-ctag]");
+      if (t) { sec.querySelectorAll("[data-ctag]").forEach(b => b.classList.toggle("on", b === t)); sec.querySelectorAll(".ctl").forEach(a => a.hidden = !!t.dataset.ctag && a.dataset.tag !== t.dataset.ctag); return }
+      const a = e.target.closest("[data-ctl]"); if (a) track("select_content", {content_type: "catalog", item_id: a.dataset.ctl});
+    });
+  }
+  /* لينك «الكتالوجات» في القايمة الزرقا */
+  const nav = document.querySelector('header nav a[href$="#reviews"]');
+  if (CL.length && nav && S.catalogsNav !== false) nav.insertAdjacentHTML("beforebegin", `<a href="${$("#catalogs") ? "" : BASE}#catalogs">الكتالوجات</a>`);
+}
+
 /* ---------- الفيديوهات ---------- */
 /* أنواع الفيديو: youtube | drive (مرفوع من لوحة التحكم) | tiktok | facebook | instagram | file (رابط mp4) */
 const VID = {

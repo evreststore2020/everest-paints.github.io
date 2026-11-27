@@ -760,3 +760,22 @@ footer.site{padding-bottom:96px}
 .csug-i span{flex:1;line-height:1.4}.csug-i small{display:block;color:var(--muted)}
 .csug-i button{border:1px solid var(--ink);background:#fff;padding:5px 10px;font:inherit;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap}
 .csug-i button:hover{background:var(--ink);color:#fff}
+
+/* ---------- الكتالوجات ---------- */
+.ctl-tags{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:18px}
+.ctl-tags button{border:1px solid var(--line);background:#fff;padding:6px 14px;font:inherit;font-size:14px;cursor:pointer}
+.ctl-tags button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.ctl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:18px}
+.ctl{display:flex;flex-direction:column;background:#fff;border:1px solid var(--line);color:inherit;transition:.2s}
+.ctl:hover{transform:translateY(-3px);border-color:var(--jotun-blue,#003087)}
+.ctl[hidden]{display:none}
+.ctl-cv{position:relative;aspect-ratio:4/3;background:#eef1f7;display:grid;place-items:center;overflow:hidden}
+.ctl-cv img{width:100%;height:100%;object-fit:cover}
+.ctl-cv span{font-size:54px}
+.ctl-cv i{position:absolute;top:8px;inset-inline-start:8px;background:rgba(0,0,0,.65);color:#fff;font-style:normal;font-size:11px;padding:2px 8px}
+.ctl-b{padding:14px;display:flex;flex-direction:column;gap:6px;flex:1}
+.ctl-b small{color:var(--muted);font-size:12px}
+.ctl-b b{font-size:16px;line-height:1.5}
+.ctl-b p{margin:0;font-size:13px;color:var(--muted);line-height:1.7}
+.ctl-go{margin-top:auto;font-size:13px;font-weight:700;color:var(--jotun-blue,#003087)}
+@media (max-width:700px){.ctl-grid{grid-template-columns:1fr 1fr;gap:10px}.ctl-b{padding:10px}.ctl-b b{font-size:14px}.ctl-b p{display:none}}
