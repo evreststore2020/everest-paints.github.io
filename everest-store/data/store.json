@@ -1,7 +1,7 @@
 {
   "settings": {
     "storeName": "إفرست للدهانات والديكور",
-    "siteUrl": "https://www.example.com",
+    "siteUrl": "https://evreststore2020.github.io/everest-paints.github.io/everest-store/",
     "apiUrl": "api.php",
     "whatsapp": "201140860075",
     "phone": "+201140860075",
@@ -2195,14 +2195,7 @@
     }
   ],
   "reviews": [],
-  "discountCodes": [
-    {
-      "code": "MAQAWEL10",
-      "percent": 10,
-      "label": "خصم المقاولين",
-      "active": false
-    }
-  ],
+  "discountCodes": [],
   "videos": [
     {
       "id": "vmwo8hl7z",
