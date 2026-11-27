@@ -124,7 +124,16 @@ function track(ev, params = {}) {
 let tt; function toast(t) { const el = $("#toast"); if (!el) return; el.textContent = t; el.classList.add("on"); clearTimeout(tt); tt = setTimeout(() => el.classList.remove("on"), 2200) }
 const logo = $("#jotunLogo");
 if (logo) { logo.onerror = function () { if (this.src !== JOTUN_LOGO) this.src = JOTUN_LOGO; else this.replaceWith(Object.assign(document.createElement("span"), {className: "jotun-word", textContent: "JOTUN"})) }; if (logo.complete && !logo.naturalWidth) logo.onerror(); }
-if ($("#menuBtn")) { $("#menuBtn").onclick = () => $("#nav").classList.toggle("open"); $("#nav").addEventListener("click", e => { if (e.target.tagName === "A") $("#nav").classList.remove("open") }) }
+/* زرار القايمة في الموبايل: مكتوب عليه «القايمة» + نبضة خفيفة لحد ما العميل يفتحها أول مرة + بيتحول لـ ✕ وهي مفتوحة */
+if ($("#menuBtn")) {
+  const mb = $("#menuBtn"), nav = $("#nav"), SEEN = "everest-menu-seen";
+  mb.innerHTML = `<span class="mb-ic" aria-hidden="true"><i></i><i></i><i></i></span><span class="mb-lbl">القايمة</span>`;
+  if (!store.get(SEEN, false)) mb.classList.add("pulse");
+  const set = o => { nav.classList.toggle("open", o); mb.classList.toggle("on", o); mb.setAttribute("aria-expanded", o); mb.querySelector(".mb-lbl").textContent = o ? "إغلاق" : "القايمة" };
+  mb.onclick = () => { set(!nav.classList.contains("open")); mb.classList.remove("pulse"); store.set(SEEN, true) };
+  nav.addEventListener("click", e => { if (e.target.closest("a")) set(false) });
+  document.addEventListener("click", e => { if (nav.classList.contains("open") && !e.target.closest("#nav,#menuBtn")) set(false) });
+}
 if ($("#yr")) {
   $("#yr").textContent = new Date().getFullYear();
 }
@@ -495,7 +504,8 @@ if ($("#grid")) {
 /* ---------- كتالوج الألوان ---------- */
 let vizSet = null;
 if ($("#swatches") && COLS.length) {
-  let fam = "all", cq = "", limit = 60, current = COLS[0];
+  const CPAGE = () => innerWidth < 700 ? 24 : 60;
+  let fam = "all", cq = "", limit = CPAGE(), current = COLS[0];
   $("#colCount").textContent = num(COLS.length);
   $("#fam").innerHTML = FAMS.map(f => `<button data-f="${f.id}" class="${f.id === fam ? "on" : ""}"><i style="background:${f.c}"></i>${f.n}</button>`).join("");
   const filtered = () => COLS.filter(c => (fam === "all" || c.f === fam) && (!cq || c.c.includes(cq) || c.n.toLowerCase().includes(cq)));
@@ -506,14 +516,14 @@ if ($("#swatches") && COLS.length) {
     $("#colShown").textContent = `${num(Math.min(limit, list.length))} من ${num(list.length)} لون`;
     $("#colMore").hidden = list.length <= limit;
   };
-  const setFam = f => { fam = f; limit = 60; $$("#fam button").forEach(x => x.classList.toggle("on", x.dataset.f === f)); render() };
+  const setFam = f => { fam = f; limit = CPAGE(); $$("#fam button").forEach(x => x.classList.toggle("on", x.dataset.f === f)); render() };
   $("#fam").addEventListener("click", e => { const b = e.target.closest("[data-f]"); if (b) setFam(b.dataset.f) });
   if ($("#famCircles")) {
     $("#famCircles").innerHTML = FAMS.filter(f => f.id !== "all").map(f => `<a href="#colours" data-fam="${f.id}"><i style="background:${f.c}"></i>${f.n}</a>`).join("");
     $("#famCircles").addEventListener("click", e => { const a = e.target.closest("[data-fam]"); if (a) setFam(a.dataset.fam) });
   }
-  $("#colQ").addEventListener("input", e => { cq = e.target.value.trim().toLowerCase(); limit = 60; render() });
-  $("#colMore").onclick = () => { limit += 60; render() };
+  $("#colQ").addEventListener("input", e => { cq = e.target.value.trim().toLowerCase(); limit = CPAGE(); render() });
+  $("#colMore").onclick = () => { limit += CPAGE(); render() };
   $("#swatches").addEventListener("click", e => { const b = e.target.closest("[data-c]"); if (b) detail(colByCode(b.dataset.c)) });
   { const b = $("#cdSample"); if (b && !$("#cdSamplePrice")) b.insertAdjacentHTML("afterend", `<small class="muted" id="cdSamplePrice" style="display:block;margin:-4px 0 10px">سعر العيّنة: <b>${S.sampleByColour === true ? sampleTxt() + " – بنأكده معاك قبل الدفع" : S.samplePrice == null ? "مجاناً" : fmt(S.samplePrice)}</b></small>`) }
   $("#cdSample").onclick = () => { addToCart("sample|" + current.c, 1); track("generate_lead", {lead_type: "colour_sample", colour: current.c}) };

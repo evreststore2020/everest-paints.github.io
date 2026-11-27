@@ -779,3 +779,42 @@ footer.site{padding-bottom:96px}
 .ctl-b p{margin:0;font-size:13px;color:var(--muted);line-height:1.7}
 .ctl-go{margin-top:auto;font-size:13px;font-weight:700;color:var(--jotun-blue,#003087)}
 @media (max-width:700px){.ctl-grid{grid-template-columns:1fr 1fr;gap:10px}.ctl-b{padding:10px}.ctl-b b{font-size:14px}.ctl-b p{display:none}}
+
+/* ---------- زرار القايمة (الموبايل) ---------- */
+@media (max-width:1100px){
+  .menu-btn{width:auto;height:38px;display:inline-flex;align-items:center;gap:7px;padding:0 12px;border:1px solid rgba(255,255,255,.55);border-radius:22px;font:inherit;font-size:14px;font-weight:600;color:#fff;transition:background .2s,border-color .2s,transform .15s;position:relative}
+  .menu-btn:hover{background:rgba(255,255,255,.14)}
+  .menu-btn:active{transform:scale(.95)}
+  .menu-btn.on{background:#fff;color:var(--jotun-blue);border-color:#fff}
+  .mb-ic{width:18px;height:14px;position:relative;display:inline-block}
+  .mb-ic i{position:absolute;inset-inline:0;height:2px;border-radius:2px;background:currentColor;transition:transform .3s var(--ease),opacity .2s,top .3s var(--ease)}
+  .mb-ic i:nth-child(1){top:0}.mb-ic i:nth-child(2){top:6px}.mb-ic i:nth-child(3){top:12px}
+  .menu-btn.on .mb-ic i:nth-child(1){top:6px;transform:rotate(45deg)}
+  .menu-btn.on .mb-ic i:nth-child(2){opacity:0}
+  .menu-btn.on .mb-ic i:nth-child(3){top:6px;transform:rotate(-45deg)}
+  .menu-btn.pulse::after{content:"";position:absolute;inset:-4px;border-radius:26px;border:2px solid #f6c400;animation:mbPulse 1.8s ease-out infinite}
+  @keyframes mbPulse{0%{opacity:.9;transform:scale(.96)}70%{opacity:0;transform:scale(1.18)}100%{opacity:0}}
+  nav.links.open{animation:navIn .25s var(--ease)}
+  @keyframes navIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+  nav.links.open a{padding:8px 0;border-bottom:1px solid var(--line)}
+}
+@media (prefers-reduced-motion:reduce){.menu-btn.pulse::after,nav.links.open{animation:none}}
+
+/* ---------- الموبايل: صفحة أقصر (الألوان والباقات) ---------- */
+@media (max-width:700px){
+  .fam{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:0 -16px 14px;padding:0 16px 4px}
+  .fam::-webkit-scrollbar{display:none}
+  .fam button{flex:none;padding:6px 12px;font-size:13px}
+  .swatches{grid-template-columns:repeat(4,1fr);gap:8px}
+  .sw-card i{height:52px}
+  .sw-card span{padding:5px 6px}
+  .sw-card b{font-size:11px}
+  .sw-card small{font-size:10px}
+  .col-detail .big{height:150px}
+  .col-detail .info{padding:14px;gap:8px}
+  .col-detail .info h3{font-size:20px}
+  /* الباقات: كروت جنب بعض بالسحب بدل تحت بعض */
+  .pkgs{display:grid;grid-auto-flow:column;grid-auto-columns:84%;grid-template-columns:none;overflow-x:auto;scroll-snap-type:x mandatory;gap:12px;margin:0 -16px;padding:0 16px 10px;scrollbar-width:thin}
+  .pkg{scroll-snap-align:start;padding:20px}
+  .pkg h3{font-size:22px}
+}
