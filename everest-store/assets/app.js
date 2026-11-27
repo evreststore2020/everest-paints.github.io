@@ -604,7 +604,10 @@ if ($("#proj")) {
   const REAL = (Array.isArray(S.projects) ? S.projects : []).filter(x => x && x.active !== false && /^https:\/\/[^\s"'<>]+$/.test(String(x.src || "")));
   const L = REAL.length ? REAL.map(x => [x.src, String(x.title || ""), String(x.area || ""), String(x.kind || "")])
     : PR.map(p => [`https://images.pexels.com/photos/${p[0]}/pexels-photo-${p[0]}.jpeg?auto=compress&cs=tinysrgb&h=600&w=800`, p[1], p[2], p[3]]);
-  $("#proj").innerHTML = L.map(p => `<figure><img loading="lazy" src="${esc(p[0])}" alt="${esc([p[1], p[2]].filter(Boolean).join(" - ") || "من أعمال إفرست")}"><figcaption>${p[3] ? `<small>${esc(p[3])}</small>` : ""}<div><b>${esc(p[1])}</b>${p[2] ? " – " + esc(p[2]) : ""}</div></figcaption></figure>`).join("");
+  const fig = p => `<figure><img loading="lazy" src="${esc(p[0])}" alt="${esc([p[1], p[2]].filter(Boolean).join(" - ") || "من أعمال إفرست")}"><figcaption>${p[3] ? `<small>${esc(p[3])}</small>` : ""}<div><b>${esc(p[1])}</b>${p[2] ? " – " + esc(p[2]) : ""}</div>${p[4] ? `<a class="proj-by" href="#pro-${esc(p[5])}">تنفيذ: ${esc(p[4])} ←</a>` : ""}</figcaption></figure>`;
+  $("#proj").innerHTML = L.map(fig).join("");
+  /* صور شغل الشركاء اللي الأدمن اختار تظهر في «أعمالنا» */
+  window.everestProjExtra = G => { const X = (G || []).filter(g => /^https:\/\/[^\s"'<>]+$/.test(String(g.url || ""))).map(g => [g.url, String(g.title || ""), String(g.area || ""), "", String(g.by || ""), String(g.pro || "")]); if (X.length) $("#proj").innerHTML = (REAL.length ? L : []).concat(X).map(fig).join("") };
 }
 
 /* ---------- الفيديوهات ---------- */
@@ -673,6 +676,75 @@ if ($("#revList")) {
   $("#revList").innerHTML = R.length ? R.map(r => `<article class="rv"><span class="stars">${stars(r.rating || 5)}</span><p>“${esc(r.text)}”</p><footer><b>${esc(r.name)}</b><span>${esc(r.area || "")}${r.date ? " · " + esc(r.date) : ""}</span></footer></article>`).join("")
     : `<div class="rev-empty" style="grid-column:1/-1">رأيك يهمنا! لو اتعاملت معانا قبل كده، شاركنا تجربتك على جوجل.</div>`;
 }
+
+/* ---------- تقييمات العملاء (للمتجر وللشركاء) – بتظهر على طول، والأدمن بيحجب من اللوحة ---------- */
+const PUBP = SB && !preview ? SB.rpc("pros_public").catch(() => null) : Promise.resolve(null);
+const rvCard = r => `<article class="rv"><span class="stars">${stars(r.stars || 5)}</span>${r.body ? `<p>“${esc(r.body)}”</p>` : ""}<footer><b>${esc(r.name)}</b><span>${r.verified ? '<i class="rv-ok">✓ اشترى من إفرست</i> · ' : ""}${esc(r.date || "")}</span></footer></article>`;
+/* نموذج التقييم: نجوم + تعليق (لازم يكون مسجّل) */
+function reviewForm(target, title, done) {
+  const me = window.everestMe && everestMe();
+  if (!me) { toast("سجّل بياناتك الأول عشان تقدر تقيّم"); window.everestLogin && everestLogin(); return }
+  const box = document.createElement("div"); box.className = "rvmodal"; box.innerHTML = `<form class="rvbox" role="dialog" aria-modal="true"><button type="button" class="aclose" data-x aria-label="إغلاق">✕</button>
+    <h3>${esc(title)}</h3><p class="muted">بتقيّم باسم <b>${esc(me.name)}</b></p>
+    <div class="rv-stars" role="radiogroup" aria-label="التقييم">${[1, 2, 3, 4, 5].map(n => `<button type="button" data-s="${n}" aria-label="${n} نجوم">★</button>`).join("")}</div>
+    <textarea name="body" rows="4" maxlength="600" placeholder="اكتب رأيك (اختياري)…"></textarea>
+    <p class="aerr" data-err></p><button class="btn btn-primary" type="submit">إرسال التقييم</button></form>`;
+  document.body.appendChild(box); let st = 0;
+  const F = box.querySelector("form"), paint = () => F.querySelectorAll("[data-s]").forEach(b => b.classList.toggle("on", +b.dataset.s <= st));
+  F.querySelectorAll("[data-s]").forEach(b => b.onclick = () => { st = +b.dataset.s; paint() });
+  const close = () => box.remove(); box.addEventListener("click", e => { if (e.target === box || e.target.closest("[data-x]")) close() });
+  F.onsubmit = async e => {
+    e.preventDefault(); const er = F.querySelector("[data-err]"); if (!st) { er.textContent = "اختار عدد النجوم"; return }
+    const btn = F.querySelector("[type=submit]"); btn.disabled = true;
+    try { await SB.insert("reviews", {target, name: me.name, phone: me.phone, stars: st, body: F.body.value.trim().slice(0, 600) || null}); close(); toast("شكراً لتقييمك ✓"); done && done() }
+    catch (x) { btn.disabled = false; er.textContent = /duplicate|unique/i.test(x.message) ? "إنت قيّمت قبل كده ✓ شكراً ليك" : /not registered/.test(x.message) ? "سجّل بياناتك في المتجر الأول" : /self review/.test(x.message) ? "ما ينفعش تقيّم نفسك 🙂" : /too many/.test(x.message) ? "محاولات كتير، جرّب بعد شوية" : "ما اتبعتش، جرّب تاني" }
+  };
+}
+if ($("#revList") && SB && !preview) {
+  const base = $("#revList").innerHTML, hasAdmin = (DATA.reviews || []).some(r => r.active !== false);
+  const load = async () => {
+    let L = []; try { L = await SB.rpc("reviews_public", {p_target: "store"}) || [] } catch (e) {}
+    if (L.length) $("#revList").innerHTML = (hasAdmin ? base : "") + L.map(rvCard).join("");
+    const s = L.length ? {count: L.length, rating: Math.round(L.reduce((a, r) => a + (+r.stars || 0), 0) / L.length * 10) / 10} : null;
+    if (s && s.count && !S.googleRating) { $("#gScore").hidden = false; $("#gScore").innerHTML = `<b>${num(s.rating)}</b><div><span class="stars">${stars(s.rating)}</span><small class="muted" style="display:block">تقييم عملاء المتجر · ${num(s.count)} تقييم</small></div>` }
+  };
+  $("#revBtn").insertAdjacentHTML("beforebegin", `<button class="btn btn-primary" id="revHere" type="button">⭐ قيّمنا هنا</button> `);
+  $("#revBtn").classList.replace("btn-navy", "btn-ghost-dark"); $("#revBtn").textContent = "أو على جوجل";
+  $("#revHere").onclick = () => reviewForm("store", "قيّم تجربتك مع إفرست", load);
+  load();
+}
+/* ---------- شركاء نادي إفرست: صفحة لكل فني / مهندس / مقاول ---------- */
+if ($("#projects") && SB && !preview) PUBP.then(P => {
+  if (!P) return;
+  window.everestProjExtra && everestProjExtra(P.gallery);
+  const L = (P.pros || []).filter(p => p && p.id); if (!L.length) return;
+  const av = p => /^https:\/\//.test(p.avatar || "") ? `<img src="${esc(p.avatar)}" alt="" loading="lazy">` : `<span>${esc(String(p.name || "؟").trim()[0] || "؟")}</span>`;
+  const rate = p => p.count ? `<span class="stars">${stars(p.rating)}</span> <b>${num(p.rating)}</b> <small>(${num(p.count)})</small>` : `<small class="muted">لسه مفيش تقييمات</small>`;
+  const role = p => [p.kind, p.specialty].filter(Boolean).join(" · ");
+  $("#projects").insertAdjacentHTML("afterend", `<section id="pros"><div class="wrap">
+    <div class="sec-head center"><div class="eyebrow">نادي إفرست</div><h2 class="title">فنيين ومهندسين ومقاولين بنرشّحهم</h2><p class="lead">شغلهم بدهانات جوتن وتقييمات عملائهم الحقيقية. اطلب أي حد فيهم عن طريقنا.</p></div>
+    <div class="pros-grid">${L.map(p => `<a class="pro-card" href="#pro-${esc(p.id)}"><div class="pro-av">${av(p)}</div><b>${esc(p.name)}</b><small>${esc(role(p))}${p.area ? " · " + esc(p.area) : ""}</small><div class="pro-rate">${rate(p)}</div>${p.works && p.works.length ? `<div class="pro-thumbs">${p.works.slice(0, 3).map(w => `<img src="${esc(w.url)}" alt="" loading="lazy">`).join("")}</div>` : ""}<span class="pro-go">شوف الشغل والتقييمات ←</span></a>`).join("")}</div>
+  </div></section>`);
+  const open = async id => {
+    const p = L.find(x => x.id === id); if (!p) return;
+    document.querySelector(".pmodal")?.remove();
+    const box = document.createElement("div"); box.className = "pmodal"; box.innerHTML = `<div class="pbox" role="dialog" aria-modal="true"><button type="button" class="aclose" data-x aria-label="إغلاق">✕</button>
+      <div class="p-head"><div class="pro-av big">${av(p)}</div><div><h3>${esc(p.name)}</h3><div class="muted">${esc(role(p))}${p.area ? " · " + esc(p.area) : ""}</div><div class="pro-rate">${rate(p)}</div><span class="club-badge">🏅 عضو نادي إفرست</span></div></div>
+      ${p.bio ? `<p class="p-bio">${esc(p.bio)}</p>` : ""}
+      <div class="p-acts"><a class="btn btn-wa" target="_blank" rel="noopener" href="${wa(`أهلاً، شفت صفحة ${p.kind || "الفني"} ${p.name} في نادي إفرست وعايز أتواصل معاه بخصوص شغل.\nالمنطقة: \nنوع الشغل: `)}">📲 اطلبه عن طريق إفرست</a><button class="btn btn-ghost-dark" type="button" data-rate>⭐ قيّمه</button><button class="btn btn-ghost-dark" type="button" data-share>🔗 شارك الصفحة</button></div>
+      ${p.works && p.works.length ? `<h4>من شغله</h4><div class="p-works">${p.works.map(w => `<a href="${esc(w.url)}" target="_blank" rel="noopener"><img src="${esc(w.url)}" alt="${esc(w.title || "")}" loading="lazy">${w.title || w.area ? `<small>${esc([w.title, w.area].filter(Boolean).join(" – "))}</small>` : ""}</a>`).join("")}</div>` : ""}
+      <h4>تقييمات العملاء</h4><div class="p-revs" data-revs><p class="muted">جاري التحميل…</p></div></div>`;
+    document.body.appendChild(box); document.body.style.overflow = "hidden";
+    const close = () => { box.remove(); document.body.style.overflow = ""; if (location.hash === "#pro-" + id) history.replaceState(null, "", location.pathname + location.search + "#pros") };
+    box.addEventListener("click", e => { if (e.target === box || e.target.closest("[data-x]")) close() });
+    const loadR = async () => { let R = []; try { R = await SB.rpc("reviews_public", {p_target: id}) || [] } catch (e) {} box.querySelector("[data-revs]").innerHTML = R.length ? R.map(rvCard).join("") : `<p class="muted">لسه مفيش تقييمات. اتعاملت معاه؟ قيّمه وساعد غيرك يختار.</p>` };
+    box.querySelector("[data-rate]").onclick = () => reviewForm(id, `قيّم ${p.name}`, loadR);
+    box.querySelector("[data-share]").onclick = e => copyTxt(location.origin + location.pathname + "#pro-" + id, e.target);
+    loadR(); track("view_item", {items: [{item_id: "pro-" + id, item_name: p.name}]});
+  };
+  const fromHash = () => { const m = location.hash.match(/^#pro-([0-9a-f-]{36})$/); if (m) open(m[1]) };
+  addEventListener("hashchange", fromHash); fromHash();
+});
 
 /* ---------- حجز المعاينة بالتقويم ---------- */
 if ($("#days")) {
@@ -880,6 +952,7 @@ if (SB && !preview) SB.select("site_data", "select=value&key=eq.ticker").then(r 
         <p class="aerr" id="aErr" role="alert"></p>
         <div class="aprog" id="aProg" hidden></div>
         <button class="btn btn-primary" type="submit" id="aGo">${edit ? "حفظ البيانات" : "دخول المتجر"}</button>
+        ${edit && CLUB.includes(m.type) && SB && !preview ? `<button class="btn btn-ghost-dark awork" id="aWork" type="button">📸 ارفع صور من شغلك</button>` : ""}
         ${edit ? `<button class="aout" id="aOut" type="button">تسجيل الخروج</button>` : ""}
       </form>`;
     const F = $("#aForm"), go = $("#aGo");
@@ -887,7 +960,42 @@ if (SB && !preview) SB.select("site_data", "select=value&key=eq.ticker").then(r 
     F.addEventListener("change", e => { if (e.target.name === "type") sync(); if (e.target.type === "file") { const s = e.target.nextElementSibling, f = e.target.files[0]; if (s) s.textContent = f ? "📎 " + f.name : "📎 اختار صورة أو PDF (لحد 5 ميجا)" } });
     sync();
     F.addEventListener("submit", submit);
+    const wk = $("#aWork"); if (wk) wk.onclick = workForm;
     const out = $("#aOut"); if (out) out.onclick = () => { ME = null; try { localStorage.removeItem(CK); localStorage.removeItem(SEEN); localStorage.removeItem(VK) } catch (e) {} paint(); toast("تم تسجيل الخروج"); gate() };
+  };
+  /* أعضاء النادي بيرفعوا صور شغلهم – بتستنى موافقة إفرست قبل ما تظهر في صفحتهم */
+  const workForm = () => {
+    $("#aBody").innerHTML = `<h3 id="aTitle">📸 صور من شغلك</h3>
+      <p class="muted">ارفع صور شغلك بدهانات جوتن. بعد ما إفرست يراجعها هتظهر في صفحتك على الموقع، والعملاء يقدروا يشوفوها ويقيّموك.</p>
+      <form id="wForm" novalidate><div class="afields">
+        <div class="field afile"><label>الصور <b class="req">*</b> <small>(لحد 10 صور)</small></label><label class="fpick"><input type="file" name="w" accept="image/jpeg,image/png,image/webp" multiple><span>📎 اختار صور</span></label></div>
+        <div class="field"><label>اسم الشغلانة</label><input name="title" maxlength="80" placeholder="مثال: شقة 150 متر – فينوماستيك"></div>
+        <div class="field"><label>المنطقة</label><input name="area" maxlength="80" placeholder="مثال: المرج"></div></div>
+        <p class="ahint">⚠️ خد موافقة صاحب المكان قبل ما تصوّر وترفع.</p>
+        <p class="aerr" id="aErr" role="alert"></p><div class="aprog" id="aProg" hidden></div>
+        <button class="btn btn-primary" type="submit" id="wGo">إرسال للمراجعة</button><button class="aout" type="button" id="wBack">رجوع</button></form>`;
+    const F = $("#wForm");
+    F.addEventListener("change", e => { if (e.target.name === "w") F.querySelector(".fpick span").textContent = e.target.files.length ? `📎 ${e.target.files.length} صورة` : "📎 اختار صور" });
+    $("#wBack").onclick = form;
+    F.onsubmit = async e => {
+      e.preventDefault(); if (busy) return;
+      const files = [...F.w.files].slice(0, 10), er = t => { $("#aErr").textContent = t };
+      if (!files.length) return er("اختار صورة واحدة على الأقل");
+      if (files.some(f => !/^image\/(jpeg|png|webp)$/.test(f.type))) return er("الصور لازم تكون JPG أو PNG (صور الآيفون HEIC ابعتها لنفسك واتساب ونزّلها)");
+      busy = true; $("#wGo").disabled = true; er(""); const pr = $("#aProg"); pr.hidden = false;
+      const dir = "pending/" + uid() + "/"; let ok = 0, bad = "";
+      for (let i = 0; i < files.length; i++) {
+        pr.textContent = `جاري رفع الصورة ${i + 1} من ${files.length}…`;
+        try {
+          const f = await shrink(files[i]), ext = f.type === "image/png" ? "png" : f.type === "image/webp" ? "webp" : "jpg", path = `${dir}${i + 1}.${ext}`;
+          await SB.upload("work", path, f);
+          await SB.insert("works", {phone: ME.phone, name: ME.name, title: F.title.value.trim().slice(0, 80) || null, area: F.area.value.trim().slice(0, 80) || null, path}); ok++;
+        } catch (x) { bad = /not a member/.test(x.message) ? "رقمك مش مسجّل كعضو في نادي إفرست – سجّل كفني أو مهندس أو مقاول الأول" : /too many/.test(x.message) ? "رفعت صور كتير، جرّب بعد شوية" : "في صور ما اترفعتش، جرّب تاني"; if (/not a member|too many/.test(x.message)) break }
+      }
+      busy = false; pr.hidden = true; $("#wGo").disabled = false;
+      if (ok) { toast(`اتبعت ${ok} صورة للمراجعة ✓ هتظهر في صفحتك بعد موافقة إفرست`); track("generate_lead", {lead_type: "pro_work", count: ok}); if (!bad) return close() }
+      er(bad);
+    };
   };
   /* تصغير الصور قبل الرفع (أسرع وأوفر في المساحة) */
   const shrink = file => new Promise(res => {
@@ -972,6 +1080,7 @@ if (SB && !preview) SB.select("site_data", "select=value&key=eq.ticker").then(r 
   modal.addEventListener("click", e => { if (e.target === modal) close() });
   addEventListener("keydown", e => { if (e.key === "Escape" && !modal.hidden) close() });
   window.everestLogin = open;
+  window.everestMe = () => ok() ? {name: ME.name, phone: ME.phone, type: ME.type} : null;
   window.everestRef = () => REFC.on === false ? null : (ok() && ME.ref) || store.get("everest-sponsor", null) || null;
   paint(); fill();
   if (!ok() && !visitor() && !preview) gate();
