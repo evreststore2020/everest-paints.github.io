@@ -67,7 +67,8 @@ if (!PAY.instapayId) { const m = String(PAY.instapayUrl || "").match(/\/S\/([^/]
 const okUrl = u => /^https?:\/\/[^\s"'<>]+$/.test(String(u || ""));
 const METHODS = [
   ["instapay", "إنستاباي", PAY.instapay !== false && (okUrl(PAY.instapayUrl) || PAY.instapayId)],
-  ["vf", "فودافون كاش", PAY.vf !== false && (okUrl(PAY.vfUrl) || PAY.vfNumber)]
+  /* المفتاح فاضل "vf" عشان الطلبات القديمة، بس الطريقة بقت: أي محفظة تحوّل على رقم المحفظة (المحافظ في مصر بتحوّل لبعض) */
+  ["vf", "محفظة إلكترونية", PAY.vf !== false && (PAY.vfNumber || okUrl(PAY.vfUrl))]
   /* الدفع عند الاستلام اتلغى – الدفع إنستاباي أو فودافون كاش بس */
 ].filter(m => m[2]);
 const METHOD_NAME = Object.fromEntries(METHODS.map(m => [m[0], m[1]]));
@@ -216,7 +217,7 @@ function payBoxHTML(T) {
   const due = dueNow(T);
   return `${head}
     <div class="pb-methods"><span class="pb-lbl">هتدفع إزاي؟</span>
-      <div class="pb-m" role="radiogroup" aria-label="طريقة الدفع">${METHODS.map(([k, n]) => `<label class="m-${k}"><input type="radio" name="pbMethod" value="${k}" ${PAYSTATE.method === k ? "checked" : ""}><span>${k === "instapay" ? "⚡ " : k === "vf" ? "📱 " : "💵 "}${n}</span></label>`).join("")}</div>
+      <div class="pb-m" role="radiogroup" aria-label="طريقة الدفع">${METHODS.map(([k, n]) => `<label class="m-${k}"><input type="radio" name="pbMethod" value="${k}" ${PAYSTATE.method === k ? "checked" : ""}><span>${k === "instapay" ? "⚡ " : k === "vf" ? "📱 " : "💵 "}${n}${k === "vf" ? `<small class="pb-sub">أي محفظة: فودافون، أورانج، اتصالات، WE</small>` : ""}</span></label>`).join("")}</div>
     </div>
     ${due > 0 ? `<div class="pb-due"><span>المطلوب دفعه الآن</span><b>${fmt(due)}</b></div>` : ""}`;
 }
@@ -252,8 +253,9 @@ function showSuccess(o) {
         ${PAY.instapayId ? `<div class="os-row"><span>عنوان إنستاباي</span><b dir="ltr">${esc(PAY.instapayId)}</b><button class="cp" data-copy="${esc(PAY.instapayId)}">نسخ</button></div>` : ""}
         ${okUrl(PAY.instapayUrl) ? `<a class="btn os-go ip" href="${esc(PAY.instapayUrl)}" target="_blank" rel="noopener">⚡ ادفع بإنستاباي</a>` : ""}`
       : `
-        ${PAY.vfNumber ? `<div class="os-row"><span>رقم فودافون كاش</span><b dir="ltr">${esc(PAY.vfNumber)}</b><button class="cp" data-copy="${esc(PAY.vfNumber)}">نسخ</button></div>` : ""}
-        ${okUrl(PAY.vfUrl) ? `<a class="btn os-go vf" href="${esc(PAY.vfUrl)}" target="_blank" rel="noopener">📱 ادفع بفودافون كاش</a>` : ""}`}
+        ${PAY.vfNumber ? `<div class="os-row"><span>رقم المحفظة</span><b dir="ltr">${esc(PAY.vfNumber)}</b><button class="cp" data-copy="${esc(PAY.vfNumber)}">نسخ</button></div>
+        <p class="os-wallet">📱 افتح <b>أي محفظة</b> عندك (فودافون كاش، أورانج كاش، اتصالات كاش، WE Pay) أو أبلكيشن البنك أو إنستاباي، واختار <b>«تحويل لمحفظة»</b> وحوّل على الرقم ده.</p>` : ""}
+        ${okUrl(PAY.vfUrl) ? `<a class="${PAY.vfNumber ? "os-alt" : "btn os-go vf"}" href="${esc(PAY.vfUrl)}" target="_blank" rel="noopener">${PAY.vfNumber ? "عندك فودافون كاش؟ ادفع بالرابط المباشر ↗" : "📱 ادفع بالمحفظة"}</a>` : ""}`}
       <ol class="os-steps">
         <li>حوّل <b>${fmt(o.due)}</b> بالظبط.</li>
         <li>اكتب رقم الطلب <b dir="ltr">${o.no}</b> في ملاحظة التحويل لو متاح.</li>
