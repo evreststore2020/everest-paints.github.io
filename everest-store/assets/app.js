@@ -361,6 +361,7 @@ if ($("#items")) {
   window.everestOpenCart = openC;
   $("#openCart").onclick = openC; $("#closeCart").onclick = closeC; $("#overlay").onclick = closeC;
   if (location.hash === "#cart") openC();
+  $("#codeIn").placeholder = "كود خصم";
   if (disc) $("#codeIn").value = disc.code;
   $("#codeBtn").onclick = async () => {
     const v = $("#codeIn").value.trim().toUpperCase();
