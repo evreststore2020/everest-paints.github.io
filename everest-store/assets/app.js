@@ -79,6 +79,8 @@ const METHOD_NAME = Object.fromEntries(METHODS.map(m => [m[0], m[1]]));
 const TINT = "ألوان خاصة";
 const tinted = (p, key) => { const k = key && findPk(p, key); return !!(k && (k.v === TINT || k.v === COLOR)) };
 const payTag = (p, key) => packPrice(p, key) == null ? "" : tinted(p, key) ? `<small class="paytag tint">🎨 يتلوّن حسب طلبك – نأكد السعر قبل الدفع</small>` : PAY.instant !== false ? `<small class="paytag fixed">✓ سعر ثابت – ادفع أونلاين فوراً</small>` : "";
+/* سعر عيّنة اللون: ثابت، أو «حسب اللون» (بيتأكد مع العميل) */
+const sampleTxt = () => S.samplePrice != null && +S.samplePrice > 0 ? `حسب اللون (يبدأ من ${fmt(S.samplePrice)})` : "حسب اللون";
 const pageUrl = p => PAGES && !PAGES.has(p.id) ? `${BASE}product.html?id=${encodeURIComponent(p.id)}` : `${BASE}p/${p.id}.html`;
 /* تسجيل الطلبات والحجوزات في جوجل شيت (لو مربوط) */
 function logEvent(type, o = {}) {
@@ -196,7 +198,7 @@ window.everestAdd = addToCart;
 function cartLines() {
   return Object.keys(cart).map(k => {
     const [id, s] = k.split("|");
-    if (id === "sample") { const c = colByCode(s); const sum = S.samplePrice == null ? null : S.samplePrice * cart[k]; return {k, sample: true, code: s, name: c ? c.n : "", hex: c ? c.h : "#ddd", n: cart[k], sum, fixed: PAY.instant !== false && sum != null} }
+    if (id === "sample") { const c = colByCode(s), byC = S.sampleByColour === true; const sum = byC || S.samplePrice == null ? null : S.samplePrice * cart[k]; return {k, sample: true, byC, code: s, name: c ? c.n : "", hex: c ? c.h : "#ddd", n: cart[k], sum, fixed: PAY.instant !== false && sum != null} }
     const p = byId(id); if (!p) return null; const size = s && findPk(p, s) ? s : null; if (s && !size) return null; const unit = packPrice(p, size);
     /* "ثابت" = ليه سعر ومش بيتلوّن، والدفع الفوري مفتوح */
     return {k, p, size, n: cart[k], sum: unit == null ? null : unit * cart[k], fixed: PAY.instant !== false && unit != null && !tinted(p, size)};
@@ -243,8 +245,8 @@ function renderCart() {
     const th = l.sample ? `<i class="th" style="background:${l.hex}"></i>` : SRC(l.p) ? `<img class="th" src="${esc(SRC(l.p))}" alt="">` : `<i class="th" style="background:${l.p.col}"></i>`;
     const title = l.sample ? `عيّنة لون ${esc(l.code)} ${esc(l.name)}` : esc(l.p.ar);
     const sub = l.sample ? "عيّنة لون" : l.size ? `عبوة ${unitLabel(l.p, l.size)}` : `بال${uBy(l.p.u)}`;
-    const tag = l.fixed ? `<span class="ltag fixed">سعر ثابت</span>` : `<span class="ltag tint">${l.p && tinted(l.p, l.size) ? "🎨 يتلوّن – السعر بعد التأكيد" : l.sum == null ? "السعر بعد التأكيد" : "الدفع بعد التأكيد"}</span>`;
-    return `<div class="ci">${th}<div class="t"><b>${title}</b><small>${sub} · ${l.sum == null ? (l.sample ? "مجاناً / عند التأكيد" : "السعر عند التأكيد") : fmt(l.sum)}</small>${tag}</div>
+    const tag = l.sample && l.byC ? `<span class="ltag tint">🎨 السعر حسب اللون – بنأكده معاك</span>` : l.fixed ? `<span class="ltag fixed">سعر ثابت</span>` : `<span class="ltag tint">${l.p && tinted(l.p, l.size) ? "🎨 يتلوّن – السعر بعد التأكيد" : l.sum == null ? "السعر بعد التأكيد" : "الدفع بعد التأكيد"}</span>`;
+    return `<div class="ci">${th}<div class="t"><b>${title}</b><small>${sub} · ${l.sum == null ? (l.sample ? (l.byC ? sampleTxt() : "مجاناً") : "السعر عند التأكيد") : fmt(l.sum)}</small>${tag}</div>
       <div class="qty"><button data-k="${esc(l.k)}" data-d="1" aria-label="زيادة">+</button><span>${num(l.n)}</span><button data-k="${esc(l.k)}" data-d="-1" aria-label="نقص">−</button></div></div>`;
   }).join("") : `<p style="color:var(--muted);text-align:center;padding:40px 0">السلة فارغة</p>`;
   { const oc = $("#oColor"), need = T.L.some(l => l.p && l.size && String(l.size).endsWith(CSUF)); if (oc) { oc.classList.toggle("need", need); oc.placeholder = need ? "🎨 اكتب كود اللون (مثلاً 1024 أو اسمه) – مهم" : oc.dataset.ph || oc.placeholder; if (!oc.dataset.ph && !need) oc.dataset.ph = oc.placeholder } }
@@ -472,6 +474,7 @@ if ($("#swatches") && COLS.length) {
   $("#colQ").addEventListener("input", e => { cq = e.target.value.trim().toLowerCase(); limit = 60; render() });
   $("#colMore").onclick = () => { limit += 60; render() };
   $("#swatches").addEventListener("click", e => { const b = e.target.closest("[data-c]"); if (b) detail(colByCode(b.dataset.c)) });
+  { const b = $("#cdSample"); if (b && !$("#cdSamplePrice")) b.insertAdjacentHTML("afterend", `<small class="muted" id="cdSamplePrice" style="display:block;margin:-4px 0 10px">سعر العيّنة: <b>${S.sampleByColour === true ? sampleTxt() + " – بنأكده معاك قبل الدفع" : S.samplePrice == null ? "مجاناً" : fmt(S.samplePrice)}</b></small>`) }
   $("#cdSample").onclick = () => { addToCart("sample|" + current.c, 1); track("generate_lead", {lead_type: "colour_sample", colour: current.c}) };
   $("#cdTry").onclick = () => { if (vizSet) vizSet(current); $("#viz").scrollIntoView({behavior: "smooth"}) };
   render(); detail(current);
