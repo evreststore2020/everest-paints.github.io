@@ -859,3 +859,6 @@ footer.site{padding-bottom:96px}
 .os-amount b{color:#0b2a4a}
 .os-send{width:100%;display:inline-flex;align-items:center;justify-content:center;gap:8px;background:#0b2a4a;color:#fff;font-size:15px}
 .os-send:hover{background:#06203a;color:#fff}
+
+.trk-s{grid-template-columns:repeat(6,1fr)}
+.trk-s li{font-size:10.5px}.trk-s li i{width:26px;height:26px;font-size:12px}

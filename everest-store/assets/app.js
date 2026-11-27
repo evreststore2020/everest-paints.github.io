@@ -846,7 +846,9 @@ function openTrack() {
   document.body.appendChild(box);
   const F = box.querySelector("form"), close = () => { box.remove(); if (location.hash === "#track") history.replaceState(null, "", location.pathname + location.search) };
   box.addEventListener("click", e => { if (e.target === box || e.target.closest("[data-x]")) close() });
-  const STEPS = [["جديد", "استلمنا طلبك"], ["تم التواصل", "اتأكد"], ["جاري التنفيذ", "بيتجهز / في الطريق"], ["مكتمل", "اتسلّم"]];
+  const STEPS = [["جديد", "استلمنا طلبك"], ["اتأكد", "اتأكد"], ["اتدفع", "اتدفع"], ["بيتجهز", "بيتجهز"], ["في الطريق", "في الطريق"], ["اتسلّم", "اتسلّم"]];
+  /* الحالات القديمة */
+  const stageOf = (s, pay) => { const full = pay === "مدفوع بالكامل"; if (s === "مكتمل") return "اتسلّم"; if (s === "جاري التنفيذ") return full ? "بيتجهز" : "اتأكد"; if (s === "تم التواصل") return full ? "اتدفع" : "اتأكد"; if (s === "جديد" && full) return "اتدفع"; return s };
   F.onsubmit = async e => {
     e.preventDefault(); const er = F.querySelector("[data-err]"), res = F.querySelector("[data-res]"); er.textContent = ""; res.innerHTML = "";
     const no = F.no.value.trim().toUpperCase().replace(/\s+/g, ""), ph = F.ph.value.trim();
@@ -858,10 +860,10 @@ function openTrack() {
     if (t && t.limited) { er.textContent = "محاولات كتير، جرّب بعد شوية"; return }
     if (!t) { er.textContent = "مش لاقيين طلب بالرقم ده والموبايل ده – اتأكد منهم أو كلّمنا على واتساب"; return }
     store.set("everest-last-order", {no, phone: ph});
-    const cancel = t.status === "ملغي", idx = Math.max(0, STEPS.findIndex(s => s[0] === t.status));
+    const stg = stageOf(t.status, t.pay), cancel = stg === "ملغي", idx = Math.max(0, STEPS.findIndex(s => s[0] === stg));
     const due = +t.due_now || 0, fin = t.final != null ? +t.final : null, paid = +t.paid || 0;
     res.innerHTML = `<div class="trk"><div class="trk-h"><b dir="ltr">${esc(t.no)}</b><small>${new Date(t.date).toLocaleDateString("ar-EG", {day: "numeric", month: "long", year: "numeric"})}</small></div>
-      ${cancel ? `<div class="trk-x">❌ الطلب ده اتلغى – لو عندك سؤال كلّمنا على واتساب</div>` : `<ol class="trk-s">${STEPS.map((s, i) => `<li class="${i < idx ? "done" : i === idx ? "now" : ""}"><i>${i < idx ? "✓" : i + 1}</i><span>${s[1]}</span></li>`).join("")}</ol>`}
+      ${cancel ? `<div class="trk-x">❌ الطلب ده اتلغى – لو عندك سؤال كلّمنا على واتساب</div>` : `<ol class="trk-s">${STEPS.map((s, i) => { const dn = i < idx || idx === STEPS.length - 1; return `<li class="${dn ? "done" : i === idx ? "now" : ""}"><i>${dn ? "✓" : i + 1}</i><span>${s[1]}</span></li>` }).join("")}</ol>`}
       <div class="trk-p">💳 الدفع: <b>${esc(t.pay || "لم يدفع")}</b>${fin != null ? ` · الإجمالي النهائي: <b>${fmt(fin)}</b>` : ""}${t.pay !== "مدفوع بالكامل" && !cancel ? (fin != null && fin - paid > 0 ? ` · المتبقي: <b>${fmt(fin - paid)}</b>` : due > 0 && !paid ? ` · مطلوب تحويل: <b>${fmt(due)}</b>` : t.mode !== "instant" ? " · <span class='muted'>هنأكد معاك السعر على واتساب</span>" : "") : ""}</div>
       ${(t.lines || []).length ? `<ul class="trk-l">${t.lines.map(l => `<li>${esc(l.name || "")}${l.pack ? " – " + esc(String(l.pack).replace(/~/g, " – ")) : ""} × ${num(+l.n || 1)}</li>`).join("")}</ul>` : ""}
       <a class="btn btn-wa" target="_blank" rel="noopener" href="${wa(`استفسار عن طلب رقم ${t.no}`)}">اسأل عن طلبك على واتساب</a></div>`;
