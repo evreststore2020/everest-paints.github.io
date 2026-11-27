@@ -812,8 +812,12 @@ if ($("#projects") && SB && !preview) PUBP.then(P => {
   const role = p => [p.kind, p.specialty].filter(Boolean).join(" · ");
   $("#projects").insertAdjacentHTML("afterend", `<section id="pros"><div class="wrap">
     <div class="sec-head center"><div class="eyebrow">نادي إفرست</div><h2 class="title">فنيين ومهندسين ومقاولين بنرشّحهم</h2><p class="lead">شغلهم بدهانات جوتن وتقييمات عملائهم الحقيقية. اطلب أي حد فيهم عن طريقنا.</p></div>
-    <div class="pros-grid">${L.map(p => `<a class="pro-card" href="#pro-${esc(p.id)}"><div class="pro-av">${av(p)}</div><b>${esc(p.name)}</b><small>${esc(role(p))}${p.area ? " · " + esc(p.area) : ""}</small><div class="pro-rate">${rate(p)}</div>${p.works && p.works.length ? `<div class="pro-thumbs">${p.works.slice(0, 3).map(w => `<img src="${esc(w.url)}" alt="" loading="lazy">`).join("")}</div>` : ""}<span class="pro-go">شوف الشغل والتقييمات ←</span></a>`).join("")}</div>
+    <div class="pros-grid">${L.map(p => `<a class="pro-card" href="#pro-${esc(p.id)}"><div class="pro-av">${av(p)}</div><b>${esc(p.name)}</b><small>${esc(role(p))}${p.area ? " · " + esc(p.area) : ""}</small><div class="pro-rate">${rate(p)}</div>${p.works && p.works.length ? `<div class="pro-cover"><img src="${esc(p.works[0].url)}" alt="" loading="lazy">${p.works.length > 1 ? `<i>+${num(p.works.length - 1)} صورة</i>` : ""}</div>` : ""}<span class="pro-go">شوف الشغل والتقييمات ←</span></a>`).join("")}</div>
+    <div class="pro-join">👷 إنت فني أو نقاش أو مقاول؟ <button type="button" data-projoin>سجّل في نادي إفرست واعرض شغلك هنا</button></div>
   </div></section>`);
+  { const qb = document.querySelector(".qb-row"); if (qb && !qb.querySelector('a[href="#pros"]')) qb.insertAdjacentHTML("beforeend", '<a href="#pros"><span>👷</span>فنيين ونقاشين</a>');
+    const nav = document.querySelector('header nav a[href$="#reviews"]'); if (nav && !document.querySelector('header nav a[href="#pros"]')) nav.insertAdjacentHTML("beforebegin", '<a href="#pros">فنيين ونقاشين</a>') }
+  document.querySelector("[data-projoin]").onclick = () => { const me = window.everestMe && everestMe(); if (me && ["فني", "مهندس", "مقاول", "تاجر", "شركة"].includes(me.type)) { toast("افتح «حسابي» واضغط «📸 ارفع صور من شغلك»"); window.everestLogin && everestLogin() } else { toast("اختار «فني» أو «مقاول» وكمّل بياناتك"); window.everestLogin && everestLogin() } };
   const open = async id => {
     const p = L.find(x => x.id === id); if (!p) return;
     document.querySelector(".pmodal")?.remove();
