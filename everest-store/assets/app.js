@@ -839,6 +839,23 @@ if ($("#projects") && SB && !preview) PUBP.then(P => {
   addEventListener("hashchange", fromHash); fromHash();
 });
 
+/* ---------- الموبايل: الأقسام الطويلة بتتفتح بضغطة (الحاسبة، تسجيل المقاولين، الحجز والخريطة) ---------- */
+if (matchMedia("(max-width:700px)").matches) {
+  const FOLDS = [["#calc .calc-grid", "🧮 افتح الحاسبة واحسب الكمية", "calc"], ["#pro form", "📝 سجّل كمقاول / شركة", "pro"], ["#contact .contact-grid > :not(.info)", "📅 احجز معاينة مجانية", "contact"], ["#contact .info .map", "🗺️ افتح الخريطة", ""]];
+  const opens = {};
+  for (const [sel, label, sec] of FOLDS) {
+    const el = document.querySelector(sel); if (!el) continue;
+    el.classList.add("m-fold"); el.insertAdjacentHTML("beforebegin", `<button type="button" class="m-fold-btn mf-${sec || "map"}">${label} <i>▾</i></button>`);
+    const b = el.previousElementSibling, open = o => { el.classList.toggle("open", o); b.classList.toggle("open", o); b.querySelector("i").textContent = o ? "▴" : "▾" };
+    b.onclick = () => open(!el.classList.contains("open"));
+    if (sec) opens[sec] = () => open(true);
+  }
+  /* لو العميل جه من لينك (#calc / #contact / #pro) القسم بيتفتح لوحده */
+  const fromLink = h => { const k = String(h || "").split("#")[1]; if (opens[k]) opens[k]() };
+  document.addEventListener("click", e => { const a = e.target.closest && e.target.closest('a[href*="#"]'); if (a) fromLink(a.getAttribute("href")) }, true);
+  fromLink(location.hash);
+}
+
 /* ---------- 📦 تتبع الطلب (برقم الطلب + الموبايل) ---------- */
 function openTrack() {
   document.querySelector(".tmodal")?.remove();

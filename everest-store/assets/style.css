@@ -869,3 +869,17 @@ footer.site{padding-bottom:96px}
 .pro-cover i{position:absolute;bottom:6px;inset-inline-start:6px;background:rgba(0,0,0,.6);color:#fff;font-style:normal;font-size:11px;padding:2px 8px}
 .pro-join{margin-top:18px;text-align:center;font-size:14px;color:var(--muted)}
 .pro-join button{background:none;border:0;font:inherit;font-weight:700;color:var(--jotun-blue,#003087);text-decoration:underline;cursor:pointer}
+
+/* ---------- الموبايل: أقسام بتتفتح بضغطة ---------- */
+.m-fold-btn{display:none}
+@media (max-width:700px){
+  .m-fold{display:none!important}
+  .m-fold.open{display:block!important}
+  .calc-grid.m-fold.open,.contact-grid>.m-fold.open{display:grid!important}
+  .m-fold-btn{display:flex;width:100%;justify-content:space-between;align-items:center;gap:10px;padding:14px 16px;margin:6px 0 12px;background:#fff;border:1px solid var(--line);font:inherit;font-size:15px;font-weight:700;color:var(--ink);cursor:pointer}
+  .m-fold-btn i{font-style:normal;color:var(--muted)}
+  .m-fold-btn.open{border-color:var(--ink)}
+  .mf-pro{background:#f6c400!important;border-color:#f6c400!important;color:#0b2a4a!important}
+  .mf-contact{background:#0b2a4a!important;border-color:#0b2a4a!important;color:#fff!important}
+  .mf-contact i{color:#fff!important}
+}
