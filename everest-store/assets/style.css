@@ -839,3 +839,23 @@ footer.site{padding-bottom:96px}
 .trk-x{background:#fdecee;color:#a10f25;padding:10px;font-weight:600}
 .trk-p{font-size:14px;line-height:1.8}
 .trk-l{margin:0;padding-inline-start:18px;font-size:13px;color:var(--muted);line-height:1.8}
+
+/* ---------- شاشة «في انتظار الدفع» بعد الطلب ---------- */
+.os-in{gap:12px}
+.os-status{display:flex;gap:12px;align-items:flex-start;text-align:start;padding:14px;border:1px solid}
+.os-status .os-ic{font-size:26px;line-height:1}
+.os-status b{display:block;font-size:17px;line-height:1.5}
+.os-status small{display:block;font-size:13px;line-height:1.7;margin-top:2px;opacity:.85}
+.os-status.wait{background:#fff8db;border-color:#f2cf55;color:#5c4400}
+.os-status.info{background:#eef3fb;border-color:#c8d6ef;color:#0b2a4a}
+.os-track{list-style:none;display:grid;grid-template-columns:repeat(4,1fr);margin:2px 0 4px;padding:0;position:relative}
+.os-track::before{content:"";position:absolute;top:14px;inset-inline:12%;height:2px;background:#e3e6ec}
+.os-track li{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11.5px;color:var(--muted);position:relative}
+.os-track li i{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-weight:700;font-size:12px;background:#fff;border:2px solid #e3e6ec;color:#9aa1ad}
+.os-track li.done i{background:#0b2a4a;border-color:#0b2a4a;color:#fff}
+.os-track li.now i{background:#f6c400;border-color:#f6c400;color:#0b2a4a;box-shadow:0 0 0 4px rgba(246,196,0,.25)}
+.os-track li.done,.os-track li.now{color:var(--ink);font-weight:600}
+.os-amount{background:#fffbea;border-color:#f2cf55}
+.os-amount b{color:#0b2a4a}
+.os-send{width:100%;display:inline-flex;align-items:center;justify-content:center;gap:8px;background:#0b2a4a;color:#fff;font-size:15px}
+.os-send:hover{background:#06203a;color:#fff}

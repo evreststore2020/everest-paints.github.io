@@ -312,7 +312,7 @@ function showSuccess(o) {
   const online = o.due > 0, m = o.method;
   const payCard = !online ? "" : `
     <div class="os-pay">
-      <div class="os-amount"><span>المطلوب دفعه الآن</span><b>${fmt(o.due)}</b><button class="cp" data-copy="${o.due}">نسخ المبلغ</button></div>
+      <div class="os-amount"><span>⏳ المطلوب تحويله</span><b>${fmt(o.due)}</b><button class="cp" data-copy="${o.due}">نسخ المبلغ</button></div>
       ${m === "instapay" ? `
         ${PAY.instapayId ? `<div class="os-row"><span>عنوان إنستاباي</span><b dir="ltr">${esc(PAY.instapayId)}</b><button class="cp" data-copy="${esc(PAY.instapayId)}">نسخ</button></div>` : ""}
         ${okUrl(PAY.instapayUrl) ? `<a class="btn os-go ip" href="${esc(PAY.instapayUrl)}" target="_blank" rel="noopener">⚡ ادفع بإنستاباي</a>` : ""}`
@@ -325,18 +325,20 @@ function showSuccess(o) {
         <li>اكتب رقم الطلب <b dir="ltr">${o.no}</b> في ملاحظة التحويل لو متاح.</li>
         <li>ابعتلنا صورة التحويل على واتساب وطلبك يتجهز.</li>
       </ol>
-      <a class="btn btn-wa os-wa" href="${wa(`طلب رقم ${o.no}\nتم التحويل بمبلغ ${fmt(o.due)} عن طريق ${METHOD_NAME[m]}.\n(مرفق صورة التحويل)`)}" target="_blank" rel="noopener">ابعت صورة التحويل على واتساب</a>
+      <a class="btn os-send" href="${wa(`طلب رقم ${o.no}\nتم التحويل بمبلغ ${fmt(o.due)} عن طريق ${METHOD_NAME[m]}.\n(مرفق صورة التحويل)`)}" target="_blank" rel="noopener"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.2-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.8 11.9 11.9 0 0 0 4.6 4c1.7.7 2.4.8 3.2.7.5-.1 1.5-.6 1.8-1.2.2-.6.2-1.1.1-1.2l-.4-.3Z"/></svg> بعد التحويل: ابعت صورة الإيصال</a>
       ${o.mode === "mixed" ? `<p class="os-note">🎨 باقي طلبك (المنتجات اللي بتتلوّن) هنأكد سعرها معاك على واتساب ونبعتلك المبلغ المتبقي.</p>` : ""}
     </div>`;
   const later = online ? "" : `<p class="os-msg">${m === "cod" && o.mode === "instant" ? "💵 هتدفع <b>كاش وقت الاستلام</b>. هنتواصل معاك على واتساب نأكد ميعاد التوصيل." : `${PAY.instant === false ? "🔄" : "🎨"} هنتواصل معاك على واتساب نأكد <b>السعر النهائي${PAY.instant === false ? "" : " واللون"}</b>، وبعدها ${m === "cod" ? "تدفع كاش وقت الاستلام" : `نبعتلك المبلغ وتدفع بـ${METHOD_NAME[m]}`}.`}</p>
-    <a class="btn btn-wa os-wa" href="${wa(o.msg)}" target="_blank" rel="noopener">ابعت تفاصيل الطلب على واتساب</a>`;
+    <a class="btn os-send" href="${wa(o.msg)}" target="_blank" rel="noopener"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.2-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.8 11.9 11.9 0 0 0 4.6 4c1.7.7 2.4.8 3.2.7.5-.1 1.5-.6 1.8-1.2.2-.6.2-1.1.1-1.2l-.4-.3Z"/></svg> ابعت تفاصيل الطلب على واتساب</a>`;
   const box = document.createElement("div"); box.className = "osuccess"; box.id = "oSuccess";
   box.innerHTML = `<div class="os-in">
-    <div class="os-ok">✓</div>
-    <h3>تم استلام طلبك</h3>
+    ${online ? `<div class="os-status wait"><span class="os-ic">⏳</span><div><b>طلبك اتسجّل – في انتظار الدفع</b><small>طلبك محجوز باسمك. حوّل المبلغ وابعتلنا صورة التحويل عشان نبدأ التجهيز.</small></div></div>`
+      : `<div class="os-status info"><span class="os-ic">📝</span><div><b>طلبك اتسجّل – في انتظار تأكيد السعر</b><small>هنتواصل معاك على واتساب قريب نأكد السعر النهائي وبعدها تدفع.</small></div></div>`}
+    <ol class="os-track">${(online ? [["done", "اتسجّل"], ["now", "الدفع"], ["", "التجهيز"], ["", "التوصيل"]] : [["done", "اتسجّل"], ["now", "تأكيد السعر"], ["", "الدفع"], ["", "التوصيل"]]).map(([c, t], i) => `<li class="${c}"><i>${c === "done" ? "✓" : i + 1}</i><span>${t}</span></li>`).join("")}</ol>
     <div class="os-no"><span>رقم الطلب</span><b dir="ltr">${o.no}</b><button class="cp" data-copy="${o.no}">نسخ</button></div>
     ${payCard}${later}
     ${online ? `<a class="os-link" href="${wa(o.msg)}" target="_blank" rel="noopener">ابعت تفاصيل الطلب كاملة على واتساب</a>` : ""}
+    <a class="os-link" href="#track">📦 تابع حالة طلبك في أي وقت</a>
     <button class="os-close" type="button">متابعة التسوق</button>
   </div>`;
   $("#drawer").appendChild(box);
