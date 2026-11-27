@@ -163,7 +163,27 @@ window.canHTML = id => { const p = byId(id) || {}; const c = p.col || "#0b2a4a";
 const SRC = p => p.img ? IMG(p.img) : p.image ? (/^https?:/.test(p.image) ? p.image : BASE + p.image) : "";
 const thumb = p => SRC(p) ? `<img loading="lazy" src="${esc(SRC(p))}" alt="${esc(p.en)} – ${esc(p.ar)}" onerror="this.onerror=null;this.outerHTML=canHTML('${p.id}')">` : canHTML(p.id);
 function cairoNow() { return new Date(new Date().toLocaleString("en-US", {timeZone: "Africa/Cairo"})) }
-if ($("#openNow")) { const d = cairoNow(), open = !S.closedDays.includes(d.getDay()) && d.getHours() >= S.openHour && d.getHours() < S.closeHour; $("#openNow").innerHTML = open ? '<b style="color:var(--ok)">● مفتوح الآن</b>' : '<b style="color:var(--accent)">● مغلق الآن</b>' }
+/* مواعيد العمل من اللوحة: مواعيد عامة + مواعيد خاصة لأي يوم (settings.dayHours) + أيام الإجازة.
+   الساعة رقم عشري: 9 = 9 الصبح، 21.5 = 9:30 بالليل. لو الإغلاق أصغر من الفتح يبقى بعد نص الليل */
+const DAYN = ["الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
+const hoursOf = d => { if ((S.closedDays || []).includes(d)) return null; const x = (S.dayHours || {})[d] || {}; return {o: +(x.o ?? S.openHour ?? 9), c: +(x.c ?? S.closeHour ?? 21)} };
+const hTxt = h => { h = ((+h % 24) + 24) % 24; const H = Math.floor(h), M = Math.round((h - H) * 60); return `${H % 12 || 12}${M ? ":" + String(M).padStart(2, "0") : ""} ${H < 12 ? "ص" : "م"}` };
+function hoursSummary() {
+  const W = [6, 0, 1, 2, 3, 4, 5], key = d => { const h = hoursOf(d); return h ? h.o + "-" + h.c : "off" }, G = [];
+  for (const d of W) { const g = G[G.length - 1]; if (g && g.k === key(d)) g.to = d; else G.push({k: key(d), from: d, to: d}) }
+  return G.map(g => `${DAYN[g.from]}${g.to !== g.from ? " – " + DAYN[g.to] : ""}: ${g.k === "off" ? "إجازة" : hTxt(hoursOf(g.from).o) + " – " + hTxt(hoursOf(g.from).c)}`).join("<br>");
+}
+function openState() {
+  const n = cairoNow(), d = n.getDay(), t = n.getHours() + n.getMinutes() / 60, y = (d + 6) % 7, h = hoursOf(d), p = hoursOf(y);
+  if (p && p.c < p.o && t < p.c) return {open: true, until: p.c};   // لسه مفتوح من امبارح بعد نص الليل
+  if (!h) return {open: false};
+  if (h.c > h.o ? t >= h.o && t < h.c : t >= h.o) return {open: true, until: h.c};
+  return {open: false, next: t < h.o ? h.o : null};
+}
+if ($("#openNow")) {
+  const box = $("#openNow").parentElement; if (box) box.innerHTML = hoursSummary() + '<br><span id="openNow"></span>';
+  const s = openState(); $("#openNow").innerHTML = s.open ? `<b style="color:var(--ok)">● مفتوح الآن</b> <small>– بيقفل ${hTxt(s.until)}</small>` : `<b style="color:var(--accent)">● مغلق الآن</b>${s.next != null ? ` <small>– بيفتح ${hTxt(s.next)}</small>` : ""}`;
+}
 
 /* ---------- الألوان ---------- */
 const FAMS = [
