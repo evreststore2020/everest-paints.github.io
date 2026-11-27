@@ -28,6 +28,10 @@ let PAGES = null; try { PAGES = new Set(await fetch(BASE + "data/pages.json").th
 if (preview) document.body.insertAdjacentHTML("afterbegin", '<p style="background:#d9a441;color:#0b2a4a;padding:8px;text-align:center;font-weight:700">وضع المعاينة – هذه بيانات المسودة من لوحة التحكم وليست المنشورة</p>');
 
 const S = DATA.settings;
+/* ---------- برنامج الداعمين ---------- */
+const REFC = Object.assign({on: true, newPct: 3}, S.referral || {});
+const phoneDigits = s => String(s || "").replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d)).replace(/[۰-۹]/g, d => "۰۱۲۳۴۵۶۷۸۹".indexOf(d)).replace(/[^\d+]/g, "");
+{ const r = phoneDigits(new URLSearchParams(location.search).get("ref")); if (REFC.on !== false && /^\+?\d{10,14}$/.test(r)) store.set("everest-sponsor", r) }
 const P = DATA.products.filter(p => p.active !== false);
 const byId = id => DATA.products.find(p => p.id === id);
 const J = "https://www.jotun.com/eg-ar/decorative/products/";
@@ -173,6 +177,17 @@ const CART_KEY = "everest-cart-v2";
 let cart = store.get(CART_KEY, {});
 let disc = store.get("everest-disc", null);
 const save = () => { store.set(CART_KEY, cart); store.set("everest-disc", disc) };
+let REFD = null, refKey = "";
+/* الخصم المستخدم = الأكبر بين كود الخصم وخصم أول طلب (مش بيتجمعوا) */
+const DISC = () => REFD && (!disc || REFD.percent > disc.percent) ? REFD : disc;
+async function refCheck() {
+  const ref = window.everestRef && everestRef(), ph = phoneDigits(($("#oPhone") && $("#oPhone").value) || (store.get("everest-customer", {}) || {}).phone || "");
+  const k = ref && ph.length >= 10 && REFC.on !== false ? ref + "|" + ph : "";
+  if (k === refKey) return; refKey = k; const had = !!REFD; REFD = null;
+  if (k && SB && !preview) { try { const r = await SB.rpc("check_ref", {p_ref: ref, p_phone: ph}); if (r && +r.pct > 0) REFD = {code: null, percent: +r.pct, label: "خصم أول طلب (عن طريق داعم)"} } catch (e) {} }
+  if (had || REFD) renderCart();
+}
+document.addEventListener("change", e => { if (e.target && e.target.id === "oPhone") renderCart() });
 function addToCart(key, n, silent) {
   cart[key] = (cart[key] || 0) + n; if (cart[key] <= 0) delete cart[key]; save(); renderCart();
   if (n > 0) { const [id, s] = key.split("|"); const p = byId(id); track("add_to_cart", {currency: "EGP", value: p ? (packPrice(p, s || null) || 0) * n : 0, items: [{item_id: id, item_name: p ? p.en : "colour sample " + s}]}); if (!silent) toast("تمت الإضافة للسلة ✓") }
@@ -193,7 +208,7 @@ function totals() {
     cnt += l.n; if (l.sum == null) unknown = true; else sub += l.sum;
     if (l.fixed) { fixedSub += l.sum; fixedN++ } else { pendN++; if (l.sum != null) pendSub += l.sum }
   });
-  const pct = disc ? disc.percent / 100 : 0, d = Math.round(sub * pct), fixedNet = fixedSub - Math.round(fixedSub * pct);
+  const DD = DISC(), pct = DD ? DD.percent / 100 : 0, d = Math.round(sub * pct), fixedNet = fixedSub - Math.round(fixedSub * pct);
   const mode = !L.length ? "none" : !pendN ? "instant" : !fixedN ? "confirm" : "mixed";
   return {L, sub, d, tot: sub - d, unknown, cnt, fixedSub, fixedNet, fixedN, pendN, pendSub, mode};
 }
@@ -208,7 +223,7 @@ function payBoxHTML(T) {
     : T.mode === "confirm" ? `<div class="pb-note tint">${PAY.instant === false ? "🔄 الأسعار بتتحدّث حالياً." : "🎨 طلبك فيه منتجات بتتلوّن حسب طلبك أو سعرها بيتأكد."} هنأكد معاك السعر النهائي واللون على واتساب، وبعدها تدفع.</div>`
     : `<div class="pb-split">
         <div><span>✓ جاهز للدفع الآن <small>(${num(T.fixedN)} ${T.fixedN > 1 ? "منتجات" : "منتج"})</small></span><b>${fmt(T.fixedNet)}</b></div>
-        <div><span>🎨 بعد التأكيد <small>(${num(T.pendN)} ${T.pendN > 1 ? "منتجات" : "منتج"} – بتتلوّن أو سعرها بيتأكد)</small></span><b>${T.pendSub ? "≈ " + fmt(T.pendSub - Math.round(T.pendSub * (disc ? disc.percent / 100 : 0))) : "يتحدد"}</b></div>
+        <div><span>🎨 بعد التأكيد <small>(${num(T.pendN)} ${T.pendN > 1 ? "منتجات" : "منتج"} – بتتلوّن أو سعرها بيتأكد)</small></span><b>${T.pendSub ? "≈ " + fmt(T.pendSub - Math.round(T.pendSub * (DISC() ? DISC().percent / 100 : 0))) : "يتحدد"}</b></div>
       </div>
       <div class="pb-opts" role="radiogroup" aria-label="طريقة تقسيم الدفع">
         <label><input type="radio" name="pbSplit" value="now" ${PAYSTATE.split === "now" ? "checked" : ""}><span><b>ادفع الجاهز دلوقتي</b><small>${fmt(T.fixedNet)} الآن، والباقي بعد ما نأكد السعر</small></span></label>
@@ -234,7 +249,8 @@ function renderCart() {
   }).join("") : `<p style="color:var(--muted);text-align:center;padding:40px 0">السلة فارغة</p>`;
   { const oc = $("#oColor"), need = T.L.some(l => l.p && l.size && String(l.size).endsWith(CSUF)); if (oc) { oc.classList.toggle("need", need); oc.placeholder = need ? "🎨 اكتب كود اللون (مثلاً 1024 أو اسمه) – مهم" : oc.dataset.ph || oc.placeholder; if (!oc.dataset.ph && !need) oc.dataset.ph = oc.placeholder } }
   $("#subtotal").textContent = fmt(T.sub);
-  $("#discRow").hidden = !disc; if (disc) { $("#discLabel").textContent = `${disc.label} (${num(disc.percent)}٪)`; $("#discVal").textContent = "− " + fmt(T.d) }
+  { const DD = DISC(); $("#discRow").hidden = !DD; if (DD) { $("#discLabel").textContent = `${DD.label} (${num(DD.percent)}٪)`; $("#discVal").textContent = "− " + fmt(T.d) } }
+  refCheck();
   $("#total").textContent = fmt(T.tot); $("#cartCount").textContent = num(T.cnt); $("#totNote").style.display = T.unknown ? "block" : "none";
   const pb = $("#payBox"); if (pb) pb.innerHTML = payBoxHTML(T);
   const due = dueNow(T), btn = $("#checkout");
@@ -317,17 +333,17 @@ if ($("#items")) {
     const lines = T.L.map(l => (l.sample ? `• عيّنة لون ${l.code} ${l.name} × ${l.n}` : `• ${l.p.ar} — ${l.size ? `عبوة ${unitLabel(l.p, l.size)} × ${l.n}` : `${l.n} ${l.p.u}`}`) + ` = ${l.sum == null ? "السعر عند التأكيد" : fmt(l.sum)} ${l.fixed ? "[سعر ثابت]" : "[بعد التأكيد]"}`);
     const color = $("#oColor").value.trim();
     const payTxt = [`طريقة الدفع: ${METHOD_NAME[method] || "-"}`, `نوع الطلب: ${MODE_TXT[T.mode]}`, due > 0 ? `المطلوب الآن: ${fmt(due)}` : (T.mode === "mixed" && method !== "cod" ? "الدفع: كله بعد التأكيد" : "")].filter(Boolean).join("\n");
-    const msg = `طلب جديد من متجر إفرست 🛒\nرقم الطلب: ${no}\n\n${lines.join("\n")}\n\nالمجموع: ${fmt(T.sub)}${disc ? `\nخصم ${disc.label} (${disc.code}): − ${fmt(T.d)}` : ""}\nالإجمالي التقريبي: ${fmt(T.tot)}${T.unknown ? " + منتجات سعرها عند التأكيد" : ""}${color ? `\nكود اللون: ${color}` : ""}\n${payTxt}\n\nالاسم: ${name}\nالهاتف: ${phone}\nالعنوان: ${addr || "-"}`;
+    const msg = `طلب جديد من متجر إفرست 🛒\nرقم الطلب: ${no}\n\n${lines.join("\n")}\n\nالمجموع: ${fmt(T.sub)}${DISC() ? `\nخصم ${DISC().label}${DISC().code ? ` (${DISC().code})` : ""}: − ${fmt(T.d)}` : ""}\nالإجمالي التقريبي: ${fmt(T.tot)}${T.unknown ? " + منتجات سعرها عند التأكيد" : ""}${color ? `\nكود اللون: ${color}` : ""}\n${payTxt}\n\nالاسم: ${name}\nالهاتف: ${phone}\nالعنوان: ${addr || "-"}`;
     track("begin_checkout", {currency: "EGP", value: T.tot, coupon: disc ? disc.code : undefined, payment_type: method});
     sending = true; $("#checkout").disabled = true; $("#checkout").textContent = "جاري إرسال الطلب…";
     const saved = await logEvent("order", {name, phone, area: addr, total: T.tot,
-      details: `رقم الطلب: ${no}\n${lines.join("\n")}` + (window.everestRef && everestRef() ? `\nرقم الفني / النقاش: ${everestRef()}` : "") + (disc ? `\nكود خصم: ${disc.code} (${disc.percent}٪)` : "") + (color ? `\nكود اللون: ${color}` : "") + `\n${payTxt}`,
+      details: `رقم الطلب: ${no}\n${lines.join("\n")}` + (window.everestRef && everestRef() ? `\nرقم الداعم: ${everestRef()}` : "") + (DISC() ? `\n${DISC().code ? "كود خصم: " + DISC().code : DISC().label} (${DISC().percent}٪)` : "") + (color ? `\nكود اللون: ${color}` : "") + `\n${payTxt}`,
       pay: {ref: (window.everestRef && everestRef()) || null, items: T.L.map(l => { const i = l.k.indexOf("|"); return {id: l.k.slice(0, i), k: l.sample ? l.code : l.size || "", n: l.n} }), code: disc ? disc.code : null, no, mode: T.mode, method, split: T.mode === "mixed" ? PAYSTATE.split : null, due_now: due, fixed: T.fixedNet, pending_items: T.pendN, status: "لم يدفع", paid: 0, final: T.unknown || T.mode !== "instant" ? null : T.tot}});
     sending = false; $("#checkout").disabled = false;
     /* لو الطلب ما اتسجلش: مانقولش "تم الاستلام" ومانطلبش فلوس، والسلة بتفضل زي ما هي */
     if (!saved) { renderCart(); toast("الطلب ما اتسجلش – ابعته لينا على واتساب"); const h = $("#checkoutHint"); if (h) h.innerHTML = `⚠ الطلب ما اتسجلش. <a class="os-link" href="${wa(msg)}" target="_blank" rel="noopener">ابعته على واتساب</a> واستنى ردنا قبل أي تحويل.`; return }
     showSuccess({no, due, method, mode: T.mode, msg});
-    cart = {}; disc = null; $("#codeIn").value = ""; save(); renderCart();
+    cart = {}; disc = null; REFD = null; refKey = ""; $("#codeIn").value = ""; save(); renderCart();
   };
   renderCart();
 }
@@ -786,14 +802,18 @@ if (SB && !preview) SB.select("site_data", "select=value&key=eq.ticker").then(r 
   const BIZ = (n) => [["company", n, "text"], ["cr_no", "رقم السجل التجاري", "text"], ["cr_file", "صورة السجل التجاري", "file"], ["tax_no", "رقم البطاقة الضريبية", "text"], ["tax_file", "صورة البطاقة الضريبية", "file"]];
   /* الخانات الإضافية لكل نوع – كلها اختيارية، والأدمن يقدر يخليها إجباري أو يخفيها من الإعدادات */
   const XF = {
-    "عميل": [["ref_phone", "رقم الفني / النقاش اللي بيشتغل معاك", "tel", null, "لو جالك عن طريق نقاش أو فني، اكتب رقمه عشان نكرّمه"], ["ref_name", "اسم الفني / النقاش", "text"]],
+    "عميل": [],
     "فني": [["specialty", "التخصص", "select", ["نقاش", "دهانات ديكورية", "ورق حائط", "عزل", "جبس بورد", "أخرى"]], ["experience", "سنين الخبرة", "number"],
       ["id_front", "صورة البطاقة (وش)", "file"], ["id_back", "صورة البطاقة (ضهر)", "file"], ["photo", "صورة شخصية (للتكريم والإعلانات)", "file"]],
     "مهندس": [["specialty", "التخصص", "select", ["مدني", "معماري", "ديكور", "أخرى"]], ["syndicate_no", "رقم عضوية النقابة", "text"], ["syndicate_card", "صورة كارنيه النقابة", "file"]],
     "مقاول": BIZ("اسم الشركة / المؤسسة"), "تاجر": BIZ("اسم المحل"), "شركة": BIZ("اسم الشركة")
   };
+  /* «رقم الداعم» أول خانة في كل الأنواع */
+  const SPONSOR = ["sponsor", "رقم الداعم (اللي عرّفك بينا)", "tel", null, `لو حد من عملائنا أو النقاشين عرّفك بينا اكتب رقمه: هو ياخد نقط${+REFC.newPct > 0 ? ` وانت تاخد خصم ${REFC.newPct}٪ على أول طلب` : ""}`];
+  for (const t in XF) XF[t].unshift(SPONSOR);
   const CLUB = ["فني", "مهندس", "مقاول", "تاجر", "شركة"];
-  const RULE = (t, k) => { const g = (S.signup || {})[t], r = g && typeof g === "object" ? g[k] : (S.signup || {})[t + "." + k]; return r === "off" || r === "req" ? r : "opt" };
+  const RULE = (t, k) => { if (k === "sponsor" && REFC.on === false) return "off"; return RULE0(t, k) };
+  const RULE0 = (t, k) => { const g = (S.signup || {})[t], r = g && typeof g === "object" ? g[k] : (S.signup || {})[t + "." + k]; return r === "off" || r === "req" ? r : "opt" };
   const cartB = $("#openCart");
   let ME = store.get(CK, null);
   const ok = () => !!(ME && ME.name && ME.email && ME.type && ME.phone && ME.area);
@@ -816,7 +836,7 @@ if (SB && !preview) SB.select("site_data", "select=value&key=eq.ticker").then(r 
       const req = RULE(t, k) === "req", star = req ? ' <b class="req">*</b>' : ' <small class="aopt-tag">(اختياري)</small>', nm = `x_${k}`;
       if (kind === "file") return `<div class="field afile"><label>${esc(label)}${star}</label><label class="fpick"><input type="file" name="${nm}" accept="image/*,application/pdf" data-req="${req ? 1 : ""}"><span>${D[k] ? "✓ اترفعت قبل كده – اختار ملف تاني لو عايز تغيّرها" : "📎 اختار صورة أو PDF (لحد 5 ميجا)"}</span></label></div>`;
       if (kind === "select") return `<div class="field"><label>${esc(label)}${star}</label><select name="${nm}" data-req="${req ? 1 : ""}">${opt(list, X[k])}</select></div>`;
-      return `<div class="field"><label>${esc(label)}${star}</label><input name="${nm}" ${kind === "tel" ? 'type="tel" dir="ltr" inputmode="tel" placeholder="01xxxxxxxxx"' : kind === "number" ? 'type="number" min="0" max="70" inputmode="numeric"' : ""} maxlength="80" data-req="${req ? 1 : ""}" value="${esc(X[k] || "")}">${hint ? `<small class="ahint">${esc(hint)}</small>` : ""}</div>`;
+      return `<div class="field"><label>${esc(label)}${star}</label><input name="${nm}" ${kind === "tel" ? 'type="tel" dir="ltr" inputmode="tel" placeholder="01xxxxxxxxx"' : kind === "number" ? 'type="number" min="0" max="70" inputmode="numeric"' : ""} maxlength="80" data-req="${req ? 1 : ""}" value="${esc(X[k] || (k === "sponsor" ? (m.ref || store.get("everest-sponsor", "") || "") : ""))}">${hint ? `<small class="ahint">${esc(hint)}</small>` : ""}</div>`;
     };
     return `<div class="xf" data-for="${t}">
       ${club ? `<div class="club-head"><b>🏅 ${t === "فني" ? "انضم لنادي إفرست" : "شريك نادي إفرست"}</b><small>${t === "فني" ? "دعوات للسمينارات والفعاليات، وتكريم لشغلك في فيديوهاتنا وعلى موقعنا." : "أسعار ومتابعة خاصة للمشاريع، ودعوات للسمينارات والفعاليات."}</small></div>` : ""}
@@ -896,6 +916,7 @@ if (SB && !preview) SB.select("site_data", "select=value&key=eq.ticker").then(r 
         continue;
       }
       let v = g("x_" + k); if (kind === "tel" && v) { v = digits(v); if (!okPhone(v)) return err(`«${label}» مش رقم صحيح`) }
+      if (k === "sponsor" && v && v.replace(/\D/g, "").slice(-10) === phone.replace(/\D/g, "").slice(-10)) return err("رقم الداعم لازم يكون رقم حد تاني غيرك");
       if (RULE(type, k) === "req" && !v) return err(`من فضلك اكتب «${label}»`);
       if (v) X[k] = v.slice(0, 80);
     }
@@ -916,7 +937,7 @@ if (SB && !preview) SB.select("site_data", "select=value&key=eq.ticker").then(r 
     pr.hidden = true;
     const isNew = !ok();
     ME = {name, email, type, phone, area, x: X, docs, source: g("source"), interests: f.getAll("interests"), offers: f.get("offers") === "on", since: (ME && ME.since) || new Date().toISOString()};
-    if (X.ref_phone) ME.ref = X.ref_phone;
+    if (X.sponsor) ME.ref = X.sponsor; else if (X.ref_phone) ME.ref = X.ref_phone;
     store.set(CK, ME); store.set(SEEN, Date.now()); try { localStorage.removeItem(VK) } catch (x) {}
     const xl = XF[type].filter(([k, , kind]) => kind !== "file" && X[k]).map(([k, label]) => `${label}: ${X[k]}`);
     logEvent("signup", {name, phone, area, details: [
@@ -948,7 +969,7 @@ if (SB && !preview) SB.select("site_data", "select=value&key=eq.ticker").then(r 
   modal.addEventListener("click", e => { if (e.target === modal) close() });
   addEventListener("keydown", e => { if (e.key === "Escape" && !modal.hidden) close() });
   window.everestLogin = open;
-  window.everestRef = () => (ok() && ME.ref) || null;
+  window.everestRef = () => REFC.on === false ? null : (ok() && ME.ref) || store.get("everest-sponsor", null) || null;
   paint(); fill();
   if (!ok() && !visitor() && !preview) gate();
   else document.documentElement.classList.remove("cust-gate");
