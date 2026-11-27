@@ -750,3 +750,13 @@ footer.site{padding-bottom:96px}
 .proj-by{display:inline-block;margin-top:4px;font-size:12px;color:#fff;opacity:.9;text-decoration:underline}
 .awork{width:100%;margin-top:10px}
 @media (max-width:700px){.pros-grid{grid-template-columns:1fr 1fr;gap:10px}.pro-card{padding:14px 8px}.pro-av{width:58px;height:58px}.p-head{align-items:flex-start}}
+
+/* ---------- اقتراحات السلة ---------- */
+.csug{border-top:1px solid var(--line);padding:12px 0 4px;margin-top:6px}
+.csug>b{display:block;font-size:14px;margin-bottom:8px}
+.csug-l{display:grid;gap:8px}
+.csug-i{display:flex;align-items:center;gap:10px;font-size:13px}
+.csug-i img,.csug-i i{width:40px;height:40px;object-fit:contain;flex:none;background:#f3f3f3;display:block}
+.csug-i span{flex:1;line-height:1.4}.csug-i small{display:block;color:var(--muted)}
+.csug-i button{border:1px solid var(--ink);background:#fff;padding:5px 10px;font:inherit;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap}
+.csug-i button:hover{background:var(--ink);color:#fff}

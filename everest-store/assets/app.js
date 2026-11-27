@@ -53,7 +53,10 @@ const hasPrice = p => PK(p).some(k => k.p != null) || (!PK(p).length && p.price 
 /* «لون»: عبوة بيضا بتتلوّن في الماكينة – سعرها مش في قايمة جوتن، فبيتأكد مع العميل.
    مفتاحها في السلة = مفتاح العبوة البيضا + «~لون». المنتجات اللي مبتتلوّنش بتتقفل من اللوحة (settings.noTint) */
 const COLOR = "لون", CSUF = "~لون";
-const canTint = p => { const L = PK(p); if (!L.some(k => isWhite(k) && k.p != null) || L.some(k => k.v === "ألوان خاصة")) return false; return Array.isArray(S.noTint) ? !S.noTint.includes(p.id) : p.cat !== "prep" && ["لتر", "كجم"].includes(uName(p.u)) };
+/* الماركة: فاضية = جوتن. المنتجات التانية (مستلزمات وأدوات) بتظهر بماركتها ومن غير «أبيض / لون» */
+const isJ = p => !p.brand || /^(jotun|جوتن)$/i.test(String(p.brand).trim());
+const brandOf = p => isJ(p) ? "Jotun" : String(p.brand).trim();
+const canTint = p => { if (!isJ(p)) return false; const L = PK(p); if (!L.some(k => isWhite(k) && k.p != null) || L.some(k => k.v === "ألوان خاصة")) return false; return Array.isArray(S.noTint) ? !S.noTint.includes(p.id) : p.cat !== "prep" && ["لتر", "كجم"].includes(uName(p.u)) };
 const findPk = (p, key) => {
   key = String(key || "");
   if (key.endsWith(CSUF)) { const b = PK(p).find(k => pkKey(k) === key.slice(0, -CSUF.length)); return b && isWhite(b) && canTint(p) ? {s: b.s, u: b.u, v: COLOR, p: null} : undefined }
@@ -81,6 +84,8 @@ const tinted = (p, key) => { const k = key && findPk(p, key); return !!(k && (k.
 const payTag = (p, key) => packPrice(p, key) == null ? "" : tinted(p, key) ? `<small class="paytag tint">🎨 يتلوّن حسب طلبك – نأكد السعر قبل الدفع</small>` : PAY.instant !== false ? `<small class="paytag fixed">✓ سعر ثابت – ادفع أونلاين فوراً</small>` : "";
 /* سعر عيّنة اللون: ثابت، أو «حسب اللون» (بيتأكد مع العميل) */
 const sampleTxt = () => S.samplePrice != null && +S.samplePrice > 0 ? `حسب اللون (يبدأ من ${fmt(S.samplePrice)})` : "حسب اللون";
+/* العبوة الافتراضية: أكبر عبوة بيضا ليها سعر */
+const defKey = p => { const L = PK(p); if (!L.length) return ""; const W = L.filter(k => isWhite(k) && k.p != null), A = (W.length ? W : L).slice().sort((a, b) => b.s - a.s); return pkKey(A[0]) };
 const pageUrl = p => PAGES && !PAGES.has(p.id) ? `${BASE}product.html?id=${encodeURIComponent(p.id)}` : `${BASE}p/${p.id}.html`;
 /* تسجيل الطلبات والحجوزات في جوجل شيت (لو مربوط) */
 function logEvent(type, o = {}) {
@@ -241,6 +246,11 @@ function payBoxHTML(T) {
 function renderCart() {
   if (!$("#items")) return;
   const T = totals();
+  /* «ما تنساش»: مستلزمات بتتقترح لما في السلة دهان (المنتجات اللي اتعلّمت في اللوحة) */
+  { const SG = (Array.isArray(S.suggest) ? S.suggest : []).map(byId).filter(p => p && hasPrice(p)), inCart = new Set(T.L.filter(l => l.p).map(l => l.p.id));
+    const show = T.L.some(l => l.p && !SG.includes(l.p)) ? SG.filter(p => !inCart.has(p.id)).slice(0, 4) : [];
+    let box = $("#cSug"); if (!box && $("#items")) { $("#items").insertAdjacentHTML("afterend", '<div class="csug" id="cSug" hidden></div>'); box = $("#cSug"); box.addEventListener("click", e => { const b = e.target.closest("[data-sug]"); if (b) { addToCart(b.dataset.sug, 1, true); toast("اتضافت ✓") } }) }
+    if (box) { box.hidden = !show.length; box.innerHTML = show.length ? `<b>${esc(S.suggestTitle || "ما تنساش مستلزمات الدهان")}</b><div class="csug-l">${show.map(p => { const k = defKey(p), pr = packPrice(p, k || null); return `<div class="csug-i">${SRC(p) ? `<img src="${esc(SRC(p))}" alt="">` : `<i style="background:${esc(p.col || "#ccc")}"></i>`}<span>${esc(p.ar)}<small>${pr != null ? fmt(pr) + (k ? " / " + unitLabel(p, k) : "") : "السعر عند الطلب"}</small></span><button type="button" data-sug="${esc(p.id + "|" + k)}">＋ أضف</button></div>` }).join("")}</div>` : "" } }
   $("#items").innerHTML = T.L.length ? T.L.map(l => {
     const th = l.sample ? `<i class="th" style="background:${l.hex}"></i>` : SRC(l.p) ? `<img class="th" src="${esc(SRC(l.p))}" alt="">` : `<i class="th" style="background:${l.p.col}"></i>`;
     const title = l.sample ? `عيّنة لون ${esc(l.code)} ${esc(l.name)}` : esc(l.p.ar);
@@ -358,6 +368,16 @@ const CATS = [
   {id: "wood", name: "دهانات أخشاب", img: null},
   {id: "industrial", name: "صناعية ومعادن", img: null}
 ];
+if (Array.isArray(S.cats) && S.cats.length) {
+  const DEF = Object.fromEntries(CATS.map(c => [c.id, c]));
+  CATS.splice(1, CATS.length - 1, ...S.cats.filter(c => c && c.id && c.id !== "all" && !c.hide).map(c => ({id: String(c.id), name: String(c.name || (DEF[c.id] || {}).name || c.id), img: /^https?:\/\//.test(c.image || "") ? null : (DEF[c.id] || {}).img || null, image: /^https?:\/\//.test(c.image || "") ? c.image : null})));
+}
+const catLabel = id => (CATS.find(c => c.id === id) || {}).name || id;
+/* لينكات الأقسام في القايمة الزرقا */
+{
+  const nav = document.querySelector('header nav a[href$="#reviews"]'), L = (Array.isArray(S.cats) ? S.cats : []).filter(c => c && c.nav && !c.hide);
+  if (nav && L.length) nav.insertAdjacentHTML("beforebegin", L.map(c => `<a href="${document.querySelector("#shop") ? "" : BASE}?cat=${encodeURIComponent(c.id)}#shop" data-goto-cat="${esc(c.id)}">${esc(c.name || c.id)}</a>`).join(""));
+}
 const colorOn = {};
 const keyOf = p => sel[p.id] == null ? "" : sel[p.id] + (colorOn[p.id] && canTint(p) ? CSUF : "");
 const sel = {}; P.forEach(p => { const L = PK(p), W = L.filter(isWhite); const d = (W.length ? W : L).slice().sort((a, b) => b.s - a.s)[0]; sel[p.id] = d ? pkKey(d) : null });
@@ -389,7 +409,7 @@ const cardHTML = p => `
       <article class="card" data-id="${p.id}">
         <a class="vis" href="${pageUrl(p)}">${p.best ? '<span class="tag">الأكثر طلباً</span>' : p.isNew ? '<span class="tag">جديد</span>' : ""}${thumb(p)}</a>
         <div class="body">
-          <div class="line">${esc(p.line)}</div>
+          <div class="line">${isJ(p) ? esc(p.line) : esc(brandOf(p)) + (p.line && p.line !== brandOf(p) ? " · " + esc(p.line) : "")}</div>
           <h3><a href="${pageUrl(p)}">${esc(p.ar)}</a></h3><div class="en">${esc(p.en)}</div>
           <div class="feats">${(p.f || []).map(x => `<span>${esc(x)}</span>`).join("")}</div>
           <div class="sizes">${sizesHTML(p)}</div>${colorHTML(p)}
@@ -426,7 +446,7 @@ if ($("#grid")) {
   [...new Set(P.map(p => p.cat).filter(Boolean))].forEach(c => { if (!CATS.some(x => x.id === c)) CATS.push({id: c, name: c, img: null}) });
   const renderCats = () => $("#cats").innerHTML = CATS.map(c => {
     const n = c.id === "all" ? P.length : P.filter(p => p.cat === c.id).length; if (!n) return "";
-    const vis = c.img || c.image ? `<img src="${c.img ? IMG(c.img) : BASE + c.image}" alt="" loading="lazy">` : `<div class="sw" style="background:${c.id === "all" ? "conic-gradient(#c8102e,#d9a441,#717e79,#0b2a4a,#c8102e)" : "#56616d"}"></div>`;
+    const vis = c.img || c.image ? `<img src="${c.img ? IMG(c.img) : /^https?:/.test(c.image) ? esc(c.image) : BASE + c.image}" alt="" loading="lazy">` : `<div class="sw" style="background:${c.id === "all" ? "conic-gradient(#c8102e,#d9a441,#717e79,#0b2a4a,#c8102e)" : "#56616d"}"></div>`;
     return `<button class="cat ${c.id === cat ? "active" : ""}" data-c="${esc(c.id)}">${vis}<b>${esc(c.name)}</b><small>${num(n)} منتج</small></button>`;
   }).join("");
   const renderGrid = () => {
@@ -442,7 +462,8 @@ if ($("#grid")) {
   let st; $("#q").addEventListener("input", e => { q = e.target.value.trim().toLowerCase(); resetShown(); renderGrid(); clearTimeout(st); st = setTimeout(() => q && track("search", {search_term: q}), 800) });
   $("#sort").addEventListener("change", e => { sort = e.target.value; renderGrid() });
   if (S.priceNote) $("#shop .toolbar").insertAdjacentHTML("afterend", `<p class="muted" style="font-size:13px;margin:-14px 0 20px">ℹ️ ${esc(S.priceNote)}</p>`);
-  $$("[data-goto-cat]").forEach(a => a.addEventListener("click", () => everestSetCat(a.dataset.gotoCat)));
+  $$("[data-goto-cat]").forEach(a => a.addEventListener("click", e => { if (!$("#shop")) return; e.preventDefault(); everestSetCat(a.dataset.gotoCat); $("#shop").scrollIntoView({behavior: "smooth"}) }));
+  { const c = new URLSearchParams(location.search).get("cat"); if (c && CATS.some(x => x.id === c)) everestSetCat(c) }
   if ($("#footProducts")) {
     $("#footProducts").innerHTML = P.filter(p => p.best).map(p => `<li><a href="${pageUrl(p)}">${esc(p.ar)}</a></li>`).join("");
     /* عنوان العمود: المنتجات المعلّم عليها «الأكثر طلباً» في اللوحة */
@@ -806,9 +827,10 @@ if (document.body.dataset.dynamic) {
     document.title = `${PD.ar} ${PD.en} | إفرست للدهانات`;
     $("#pdGal").innerHTML = SRC(PD) ? `<img src="${esc(SRC(PD).replace("width=562", "width=800"))}" alt="${esc(PD.en)}">` : `<div style="transform:scale(1.8)">${canHTML(PD.id)}</div>`;
     $("#pdLine").textContent = PD.line || ""; $("#pdName").textContent = PD.ar; $("#pdEn").textContent = PD.en || ""; $("#pdDesc").textContent = PD.d || "";
-    $("#pdCrumb").textContent = PD.ar; $("#pdCat").textContent = CN[PD.cat] || "المنتجات";
+    $("#pdCrumb").textContent = PD.ar; $("#pdCat").textContent = CN[PD.cat] || catLabel(PD.cat) || "المنتجات";
+    if (!isJ(PD)) { $("#pdLine").textContent = brandOf(PD) + (PD.line && PD.line !== brandOf(PD) ? " · " + PD.line : ""); const ul = $("#pdCov") && $("#pdCov").parentElement; if (ul) ul.innerHTML = `<li>✓ منتج أصلي من إفرست للدهانات</li><li>✓ مناسب لتجهيز وتشطيب أعمال الدهان</li>` }
     $("#pdFeats").innerHTML = (PD.f || []).map(x => `<span>${esc(x)}</span>`).join("");
-    $("#pdCov").textContent = `✓ تغطية تقريبية ${PD.cov} م² لكل ${PD.u} للطبقة الواحدة`;
+    if (isJ(PD) && $("#pdCov")) $("#pdCov").textContent = `✓ تغطية تقريبية ${PD.cov} م² لكل ${PD.u} للطبقة الواحدة`;
     if (PD.url) { $("#pdSpec").href = J + PD.url; $("#pdSpec").style.display = "" }
   }
 }
