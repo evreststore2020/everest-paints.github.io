@@ -212,7 +212,14 @@ const colByCode = c => COLS.find(x => x.c === c);
 const CART_KEY = "everest-cart-v2";
 let cart = store.get(CART_KEY, {});
 let disc = store.get("everest-disc", null);
-const save = () => { store.set(CART_KEY, cart); store.set("everest-disc", disc) };
+let cartT;
+const syncCart = () => { clearTimeout(cartT); cartT = setTimeout(async () => {
+  const me = window.everestMe && everestMe(); if (!me || !SB || preview) return;
+  const items = Object.keys(cart).map(k => { const i = k.indexOf("|"), id = k.slice(0, i), kk = k.slice(i + 1), p = byId(id); return {id, k: kk, n: cart[k], name: id === "sample" ? "عيّنة لون " + kk : p ? p.ar : id} });
+  let total = 0; try { total = totals().sub } catch (e) {}
+  try { await SB.rpc("save_cart", {p_phone: me.phone, p_name: me.name, p_items: items, p_total: total}) } catch (e) {}
+}, 4000) };
+const save = () => { store.set(CART_KEY, cart); store.set("everest-disc", disc); syncCart() };
 let REFD = null, refKey = "";
 /* الخصم المستخدم = الأكبر بين كود الخصم وخصم أول طلب (مش بيتجمعوا) */
 const DISC = () => REFD && (!disc || REFD.percent > disc.percent) ? REFD : disc;
@@ -383,6 +390,7 @@ if ($("#items")) {
     sending = false; $("#checkout").disabled = false;
     /* لو الطلب ما اتسجلش: مانقولش "تم الاستلام" ومانطلبش فلوس، والسلة بتفضل زي ما هي */
     if (!saved) { renderCart(); toast("الطلب ما اتسجلش – ابعته لينا على واتساب"); const h = $("#checkoutHint"); if (h) h.innerHTML = `⚠ الطلب ما اتسجلش. <a class="os-link" href="${wa(msg)}" target="_blank" rel="noopener">ابعته على واتساب</a> واستنى ردنا قبل أي تحويل.`; return }
+    store.set("everest-last-order", {no, phone});
     showSuccess({no, due, method, mode: T.mode, msg});
     cart = {}; disc = null; REFD = null; refKey = ""; $("#codeIn").value = ""; save(); renderCart();
   };
@@ -824,6 +832,59 @@ if ($("#projects") && SB && !preview) PUBP.then(P => {
   addEventListener("hashchange", fromHash); fromHash();
 });
 
+/* ---------- 📦 تتبع الطلب (برقم الطلب + الموبايل) ---------- */
+function openTrack() {
+  document.querySelector(".tmodal")?.remove();
+  const me = window.everestMe && everestMe(), last = store.get("everest-last-order", null) || {};
+  const box = document.createElement("div"); box.className = "rvmodal tmodal"; box.innerHTML = `<form class="rvbox" role="dialog" aria-modal="true" novalidate><button type="button" class="aclose" data-x aria-label="إغلاق">✕</button>
+    <h3>📦 تتبع طلبك</h3><p class="muted">اكتب رقم الطلب (بيبدأ بـ EV) ورقم الموبايل اللي طلبت بيه.</p>
+    <input name="no" dir="ltr" placeholder="EV-1127-AB12" value="${esc(last.no || "")}" autocomplete="off"><input name="ph" type="tel" dir="ltr" inputmode="tel" placeholder="01xxxxxxxxx" value="${esc(last.phone || (me && me.phone) || "")}">
+    <p class="aerr" data-err></p><button class="btn btn-primary" type="submit">تابع الطلب</button><div data-res></div></form>`;
+  document.body.appendChild(box);
+  const F = box.querySelector("form"), close = () => { box.remove(); if (location.hash === "#track") history.replaceState(null, "", location.pathname + location.search) };
+  box.addEventListener("click", e => { if (e.target === box || e.target.closest("[data-x]")) close() });
+  const STEPS = [["جديد", "استلمنا طلبك"], ["تم التواصل", "اتأكد"], ["جاري التنفيذ", "بيتجهز / في الطريق"], ["مكتمل", "اتسلّم"]];
+  F.onsubmit = async e => {
+    e.preventDefault(); const er = F.querySelector("[data-err]"), res = F.querySelector("[data-res]"); er.textContent = ""; res.innerHTML = "";
+    const no = F.no.value.trim().toUpperCase().replace(/\s+/g, ""), ph = F.ph.value.trim();
+    if (!/^EV-\d{4}-[A-Z0-9]{1,6}$/.test(no)) { er.textContent = "رقم الطلب شكله كده: EV-1127-AB12"; return }
+    if (!SB) { er.textContent = "التتبع مش متاح دلوقتي – كلّمنا على واتساب"; return }
+    const b = F.querySelector("[type=submit]"); b.disabled = true; let t = null;
+    try { t = await SB.rpc("track_order", {p_no: no, p_phone: ph}) } catch (x) { er.textContent = "في مشكلة في الاتصال، جرّب تاني" }
+    b.disabled = false; if (er.textContent) return;
+    if (t && t.limited) { er.textContent = "محاولات كتير، جرّب بعد شوية"; return }
+    if (!t) { er.textContent = "مش لاقيين طلب بالرقم ده والموبايل ده – اتأكد منهم أو كلّمنا على واتساب"; return }
+    store.set("everest-last-order", {no, phone: ph});
+    const cancel = t.status === "ملغي", idx = Math.max(0, STEPS.findIndex(s => s[0] === t.status));
+    const due = +t.due_now || 0, fin = t.final != null ? +t.final : null, paid = +t.paid || 0;
+    res.innerHTML = `<div class="trk"><div class="trk-h"><b dir="ltr">${esc(t.no)}</b><small>${new Date(t.date).toLocaleDateString("ar-EG", {day: "numeric", month: "long", year: "numeric"})}</small></div>
+      ${cancel ? `<div class="trk-x">❌ الطلب ده اتلغى – لو عندك سؤال كلّمنا على واتساب</div>` : `<ol class="trk-s">${STEPS.map((s, i) => `<li class="${i < idx ? "done" : i === idx ? "now" : ""}"><i>${i < idx ? "✓" : i + 1}</i><span>${s[1]}</span></li>`).join("")}</ol>`}
+      <div class="trk-p">💳 الدفع: <b>${esc(t.pay || "لم يدفع")}</b>${fin != null ? ` · الإجمالي النهائي: <b>${fmt(fin)}</b>` : ""}${t.pay !== "مدفوع بالكامل" && !cancel ? (fin != null && fin - paid > 0 ? ` · المتبقي: <b>${fmt(fin - paid)}</b>` : due > 0 && !paid ? ` · مطلوب تحويل: <b>${fmt(due)}</b>` : t.mode !== "instant" ? " · <span class='muted'>هنأكد معاك السعر على واتساب</span>" : "") : ""}</div>
+      ${(t.lines || []).length ? `<ul class="trk-l">${t.lines.map(l => `<li>${esc(l.name || "")}${l.pack ? " – " + esc(String(l.pack).replace(/~/g, " – ")) : ""} × ${num(+l.n || 1)}</li>`).join("")}</ul>` : ""}
+      <a class="btn btn-wa" target="_blank" rel="noopener" href="${wa(`استفسار عن طلب رقم ${t.no}`)}">اسأل عن طلبك على واتساب</a></div>`;
+    track("track_order", {status: t.status});
+  };
+  if (last.no && (last.phone || (me && me.phone))) F.requestSubmit();
+}
+document.addEventListener("click", e => { const a = e.target.closest && e.target.closest('a[href$="#track"]'); if (a) { e.preventDefault(); openTrack() } });
+if (location.hash === "#track") setTimeout(openTrack, 300);
+{ /* لينك في الفوتر */ const ul = [...document.querySelectorAll("footer h4")].find(h => h.textContent.trim() === "روابط"); if (ul && ul.nextElementSibling) ul.nextElementSibling.insertAdjacentHTML("afterbegin", '<li><a href="#track">📦 تتبع طلبك</a></li>') }
+
+/* ---------- 📣 شريط العرض فوق الصفحة (من اللوحة) + عدّاد ---------- */
+{
+  const P = S.promo || {}, until = P.until ? new Date(P.until) : null, key = "everest-promo-hide:" + String(P.text || "").length + ":" + (P.until || "");
+  let hidden = false; try { hidden = sessionStorage.getItem(key) === "1" } catch (e) {}
+  const okLink = u => /^(#[\w-]+|https?:\/\/[^\s"'<>]+|\?[\w=&%-]+#?[\w-]*)$/.test(String(u || ""));
+  const hdr = $("#siteHeader") || document.querySelector("header.main");
+  if (P.on && P.text && (!until || isNaN(until) || until > Date.now()) && !hidden && hdr) {
+    hdr.insertAdjacentHTML("afterbegin", `<div class="promo promo-${["gold", "red", "blue", "green"].includes(P.color) ? P.color : "gold"}" role="region" aria-label="عرض"><div class="wrap"><span class="pr-t">${esc(P.text)}</span>${until && !isNaN(until) ? '<b class="pr-cd" aria-live="off"></b>' : ""}${okLink(P.link) ? `<a class="pr-go" href="${esc(P.link)}">${esc(P.cta || "اطلب دلوقتي")} ←</a>` : ""}<button class="pr-x" type="button" aria-label="إخفاء العرض">✕</button></div></div>`);
+    const bar = hdr.querySelector(".promo"), cd = bar.querySelector(".pr-cd");
+    bar.querySelector(".pr-x").onclick = () => { bar.remove(); try { sessionStorage.setItem(key, "1") } catch (e) {} };
+    if (cd) { const tick = () => { let s = Math.floor((until - Date.now()) / 1000); if (s <= 0) { bar.remove(); clearInterval(iv); return } const d = Math.floor(s / 86400); s %= 86400; const p = n => String(n).padStart(2, "0"); cd.textContent = (d ? `${num(d)} يوم ` : "") + `${p(Math.floor(s / 3600))}:${p(Math.floor(s % 3600 / 60))}:${p(s % 60)}` }; const iv = setInterval(tick, 1000); tick() }
+    track("view_promotion", {promotion_name: String(P.text).slice(0, 60)});
+  }
+}
+
 /* ---------- حجز المعاينة بالتقويم ---------- */
 if ($("#days")) {
   const DN = ["الأحد","الإثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"];
@@ -928,6 +989,7 @@ if (PD && $("#pdBuy")) {
   const hero = document.querySelector("section.hero");
   const Q = [["#shop", "🛒", "المنتجات والأسعار"], ["#colours", "🎨", "كتالوج الألوان"], ["#packages", "🏠", "باقات الشقق"], ["#calc", "🧮", "حاسبة الدهان"], ["#viz", "🖌️", "نسّق ألوانك"], ["#videos", "▶️", "الفيديوهات"], ["#contact", "📅", "احجز معاينة مجانية"], ["#pro", "🏗️", "للمقاولين"]]
     .filter(([id]) => { const el = document.querySelector(id); return el && !(id === "#videos" && !(DATA.videos || []).some(v => v.active !== false && v.src)) });
+  if (hero && Q.length) Q.push(["#track", "📦", "تتبع طلبك"]);
   if (hero && Q.length) hero.insertAdjacentHTML("afterend", `<nav class="quickbar" aria-label="خدماتنا"><div class="wrap"><div class="qb-row">${Q.map(([h, i, t]) => `<a href="${h}"><span>${i}</span>${t}</a>`).join("")}</div></div></nav>`);
 }
 
