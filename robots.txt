@@ -1,6 +1,6 @@
 User-agent: *
 Allow: /
-Disallow: /product.html
-Disallow: /tools/
+Disallow: /everest-store/product.html
+Disallow: /everest-store/tools/
 
-Sitemap: https://www.example.com/sitemap.xml
+Sitemap: https://everest-paints.com/everest-store/sitemap.xml
