@@ -883,3 +883,15 @@ footer.site{padding-bottom:96px}
   .mf-contact{background:#0b2a4a!important;border-color:#0b2a4a!important;color:#fff!important}
   .mf-contact i{color:#fff!important}
 }
+
+/* شارك المتجر */
+.share-store{display:flex;gap:22px;align-items:center;margin-top:32px;padding:20px;border:1px solid rgba(255,255,255,.14);border-radius:14px;background:rgba(255,255,255,.04)}
+.share-store .ss-qr{background:#fff;border-radius:10px;padding:6px;flex:none}
+.share-store h4{margin-bottom:4px}
+.share-store p{margin:0 0 10px}
+.ss-dom{display:inline-block;background:#fff;color:var(--navy,#003087)!important;font-weight:800;font-size:18px;padding:5px 14px;border-radius:8px;letter-spacing:.3px}
+.ss-btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.ss-b{font:inherit;font-size:13px;cursor:pointer;color:#fff;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.22);border-radius:999px;padding:7px 14px;text-decoration:none}
+.ss-b:hover{background:rgba(255,255,255,.2)}
+.ss-wa{background:#25d366;border-color:#25d366;color:#fff}
+@media (max-width:600px){.share-store{flex-direction:column;text-align:center}.ss-btns{justify-content:center}}

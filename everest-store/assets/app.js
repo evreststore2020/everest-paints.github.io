@@ -991,6 +991,27 @@ if (PD && $("#pdBuy")) {
 /* ---------- تصميم وتطوير: داش تكنولوجي (في آخر الفوتر في كل الصفحات) ---------- */
 {
   const ft = document.querySelector("footer.site .wrap");
+  /* شارك المتجر: اسم الموقع + QR + مشاركة */
+  if (ft && !document.querySelector(".share-store")) {
+    const SU = "https://everest-paints.com/", SM = "إفرست للدهانات والديكور – وكيل جوتن المعتمد بالمرج 🎨\nكل منتجات جوتن بالأسعار واطلب أونلاين:\n" + SU;
+    ft.insertAdjacentHTML("beforeend", `<div class="share-store">
+      <img class="ss-qr" src="${BASE}assets/qr-store.png" width="132" height="132" alt="QR موقع إفرست everest-paints.com" loading="lazy">
+      <div class="ss-txt">
+        <h4>شارك المتجر مع صحابك</h4>
+        <p>امسح الكود أو ابعت اللينك لأي حد محتاج دهانات.</p>
+        <a class="ss-dom" href="${SU}" dir="ltr">everest-paints.com</a>
+        <div class="ss-btns">
+          <a class="ss-b ss-wa" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(SM)}">ابعته واتساب</a>
+          <button type="button" class="ss-b" data-sscopy>نسخ اللينك</button>
+          ${navigator.share ? '<button type="button" class="ss-b" data-ssshare>مشاركة</button>' : ""}
+          <a class="ss-b" href="${BASE}assets/qr-store.png" download="QR-everest-paints.png">تحميل الـQR</a>
+        </div>
+      </div>
+    </div>`);
+    const box = ft.querySelector(".share-store");
+    box.querySelector("[data-sscopy]").onclick = e => copyTxt(SU, e.target);
+    const sh = box.querySelector("[data-ssshare]"); if (sh) sh.onclick = () => navigator.share({title: "إفرست للدهانات والديكور", text: SM.replace(SU, ""), url: SU}).catch(() => {});
+  }
   if (ft) ft.insertAdjacentHTML("beforeend", `<div class="policy-links">${[["privacy", "سياسة الخصوصية"], ["returns", "الاستبدال والاسترجاع"], ["delivery", "التوصيل"], ["terms", "الشروط والأحكام"]].map(([k, n]) => `<a href="${BASE}policies.html#${k}">${n}</a>`).join("")}</div>`);
   if (ft && !document.querySelector(".dash-credit")) ft.insertAdjacentHTML("beforeend", `
     <div class="dash-credit">
