@@ -373,6 +373,8 @@ if ($("#items")) {
     if (!c) { disc = null; save(); renderCart(); return toast("الكود غير صحيح أو غير مفعّل") }
     disc = {code: c.code, percent: c.percent, label: c.label}; save(); renderCart(); toast("تم تطبيق الخصم ✓");
   };
+  /* كود الترحيب بيتطبق على السلة تلقائي بعد التسجيل */
+  window.everestApplyCode = code => { $("#codeIn").value = code; $("#codeBtn").click() };
   let sending = false;
   $("#checkout").onclick = async () => {
     if (sending) return;
@@ -1078,6 +1080,8 @@ if (SB && !preview) SB.select("site_data", "select=value&key=eq.ticker").then(r 
   const RULE = (t, k) => { if (k === "sponsor" && REFC.on === false) return "off"; return RULE0(t, k) };
   const RULE0 = (t, k) => { const g = (S.signup || {})[t], r = g && typeof g === "object" ? g[k] : (S.signup || {})[t + "." + k]; return r === "off" || r === "req" ? r : "opt" };
   const cartB = $("#openCart");
+  /* خصم الترحيب للمسجّلين الجداد (من اللوحة ← التسويق) */
+  const WEL = S.welcome || {}, WON = !!(WEL.on && WEL.code && +WEL.pct > 0);
   let ME = store.get(CK, null);
   const ok = () => !!(ME && ME.name && ME.email && ME.type && ME.phone && ME.area);
   const visitor = () => { const v = +store.get(VK, 0) || 0; return Date.now() - v < 7 * 864e5 };
@@ -1116,6 +1120,7 @@ if (SB && !preview) SB.select("site_data", "select=value&key=eq.ticker").then(r 
       ${gated ? `<div class="agate-brand"><img src="${BASE}assets/everest-logo-h.png" alt="" width="94" height="54" onerror="this.remove()"><div><b>إفرست للدهانات والديكور</b><small>وكيل جوتن المعتمد</small></div></div>` : ""}
       <h3 id="aTitle">${edit ? "بياناتي" : gated ? "أهلاً بيك 👋 سجّل بياناتك للدخول" : "تسجيل الدخول"}</h3>
       <p class="muted">${edit ? "تقدر تعدّل بياناتك في أي وقت." : "سجّل مرة واحدة بس – ومش هتحتاج تكتب بياناتك تاني مع كل طلب."}</p>
+      ${!edit && WON ? `<div class="awelcome">🎁 سجّل دلوقتي وخد <b>خصم ${esc(WEL.pct)}٪</b> على أول طلب – الكود هيظهرلك بعد التسجيل على طول</div>` : ""}
       <form id="aForm" novalidate data-type="${esc(m.type || "")}">
         <div class="field atype"><label>إنت مين؟ <b class="req">*</b></label>
           <div class="achips big" role="radiogroup">${[...CTYPES, ...(edit ? [] : ["زائر"])].map(x => `<label class="${x === "زائر" ? "visitor-chip" : ""}"><input type="radio" name="type" value="${esc(x)}" ${m.type === x ? "checked" : ""}><span>${x === "زائر" ? "👀 زائر" : esc(x)}</span></label>`).join("")}</div></div>
@@ -1254,9 +1259,24 @@ if (SB && !preview) SB.select("site_data", "select=value&key=eq.ticker").then(r 
     track(isNew ? "sign_up" : "login", {method: "email", customer_type: type});
     busy = false; go.disabled = false;
     gated = false; document.documentElement.classList.remove("cust-gate");
-    paint(); fill(); close();
+    paint(); fill();
+    if (isNew && WON && !failed.length) return welcomeDone(name);
+    close();
     toast(failed.length ? `اتسجلت ✓ بس ما قدرناش نرفع: ${failed.join("، ")} – ابعتها على واتساب` : isNew ? `أهلاً ${first(name)}، نورت المتجر ✓` : "تم حفظ بياناتك ✓");
   }
+  /* بعد التسجيل: كود الترحيب + بيتطبق على السلة */
+  const welcomeDone = name => {
+    $("#aBody").innerHTML = `<div class="awel-done"><div class="awel-ic">🎉</div><h3 id="aTitle">أهلاً ${esc(first(name))}، نورت المتجر!</h3>
+      <p>ده كود خصمك <b>${esc(WEL.pct)}٪</b> على أول طلب:</p>
+      <div class="awel-code" dir="ltr">${esc(WEL.code)}</div>
+      <button class="btn btn-ghost-dark" type="button" id="welCopy">📋 نسخ الكود</button>
+      <p class="muted">✓ اتطبّق على سلتك تلقائي – هتلاقي الخصم وإنت بتكمّل الطلب.</p>
+      <button class="btn btn-primary" type="button" id="welGo">ابدأ التسوق</button></div>`;
+    try { window.everestApplyCode && window.everestApplyCode(WEL.code) } catch (e) {}
+    $("#welCopy").onclick = e => copyTxt(WEL.code, e.target);
+    $("#welGo").onclick = () => { close(); const s = document.getElementById("shop"); if (s) s.scrollIntoView({behavior: "smooth"}) };
+    track("welcome_code", {code: WEL.code});
+  };
   /* بنملا خانات الاسم والموبايل في الطلب والحجز تلقائي */
   const fill = () => { if (!ME) return; for (const [s, v] of [["#oName", ME.name], ["#oPhone", ME.phone], ["#oAddr", ME.area], ["input[name=name]", ME.name], ["input[name=phone]", ME.phone]]) for (const el of document.querySelectorAll(s)) if (!el.closest("#aModal") && !el.value && v) el.value = v };
   const close = () => { if (gated) return; modal.hidden = true; document.body.style.overflow = "" };
@@ -1273,6 +1293,15 @@ if (SB && !preview) SB.select("site_data", "select=value&key=eq.ticker").then(r 
   paint(); fill();
   if (!ok() && !visitor() && !preview) gate();
   else document.documentElement.classList.remove("cust-gate");
+  /* زائر ما سجّلش: تذكير صغير بخصم الترحيب بعد شوية (مرة كل 3 أيام لو قفله) */
+  const WX = "everest-wel-x";
+  if (WON && !preview && !ok() && visitor() && Date.now() - (+store.get(WX, 0) || 0) > 3 * 864e5) setTimeout(() => {
+    if (ok() || !modal.hidden || document.getElementById("welNudge")) return;
+    document.body.insertAdjacentHTML("beforeend", `<div class="wnudge" id="welNudge" role="dialog" aria-label="خصم الترحيب"><button class="wn-x" type="button" aria-label="إغلاق">✕</button><span class="wn-ic">🎁</span><div><b>خصم ${esc(WEL.pct)}٪ على أول طلب</b><small>سجّل في دقيقة والكود يظهرلك على طول</small></div><button class="btn btn-primary wn-go" type="button">سجّل دلوقتي</button></div>`);
+    const n = document.getElementById("welNudge"), bye = () => { n.classList.add("out"); setTimeout(() => n.remove(), 300) };
+    n.querySelector(".wn-x").onclick = () => { store.set(WX, Date.now()); bye() };
+    n.querySelector(".wn-go").onclick = () => { bye(); open(); track("welcome_nudge_click", {}) };
+  }, Math.max(3, Math.min(120, +WEL.delay || 20)) * 1000);
   /* زيارة جديدة لعميل مسجّل → بتظهر في اللوحة (مرة كل 6 ساعات بالكتير) */
   if (ok() && !preview && Date.now() - (+store.get(SEEN, 0) || 0) > 6 * 3600e3) { store.set(SEEN, Date.now()); logEvent("login", {name: ME.name, phone: ME.phone, area: ME.area, details: "الإيميل: " + ME.email + "\nنوع العميل: " + ME.type}) }
 })();
