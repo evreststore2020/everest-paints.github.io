@@ -28,6 +28,30 @@ let PAGES = null; try { PAGES = new Set(await fetch(BASE + "data/pages.json").th
 if (preview) document.body.insertAdjacentHTML("afterbegin", '<p style="background:#d9a441;color:#0b2a4a;padding:8px;text-align:center;font-weight:700">وضع المعاينة – هذه بيانات المسودة من لوحة التحكم وليست المنشورة</p>');
 
 const S = DATA.settings;
+/* ---------- أبلكيشن إفرست (PWA): أيقونة على الشاشة الرئيسية + ملء الشاشة ---------- */
+{
+  const H = document.head, add = (tag, at) => { const e = document.createElement(tag); for (const k in at) e.setAttribute(k, at[k]); H.appendChild(e) };
+  if (!H.querySelector('link[rel="manifest"]')) add("link", {rel: "manifest", href: BASE + "manifest.webmanifest"});
+  if (!H.querySelector('link[rel="apple-touch-icon"]')) add("link", {rel: "apple-touch-icon", href: BASE + "assets/apple-touch-icon.png"});
+  if (!H.querySelector('meta[name="theme-color"]')) add("meta", {name: "theme-color", content: "#003087"});
+  add("meta", {name: "apple-mobile-web-app-capable", content: "yes"}); add("meta", {name: "mobile-web-app-capable", content: "yes"}); add("meta", {name: "apple-mobile-web-app-title", content: "إفرست"});
+  if ("serviceWorker" in navigator && !preview && location.protocol === "https:") navigator.serviceWorker.register(BASE + "sw.js", {scope: BASE}).catch(() => {});
+  window.__evInstall = null;
+  addEventListener("beforeinstallprompt", e => { e.preventDefault(); window.__evInstall = e; document.querySelectorAll("[data-install]").forEach(b => b.hidden = false) });
+  addEventListener("appinstalled", () => { window.__evInstall = null; document.querySelectorAll("[data-install]").forEach(b => b.hidden = true); try { gtag("event", "app_installed") } catch (e) {} });
+}
+const isApp = matchMedia("(display-mode: standalone)").matches || navigator.standalone === true, isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+/* زرار «ثبّت الأبلكيشن»: أندرويد/كمبيوتر بيظهر نافذة التثبيت، والآيفون بيظهر الخطوات */
+async function installApp() {
+  if (window.__evInstall) { const e = window.__evInstall; window.__evInstall = null; e.prompt(); try { await e.userChoice } catch (x) {} document.querySelectorAll("[data-install]").forEach(b => b.hidden = true); return }
+  const d = document.createElement("div"); d.className = "inst-ios";
+  d.innerHTML = `<div class="inst-box" role="dialog" aria-label="تثبيت الأبلكيشن"><button class="inst-x" type="button" aria-label="إغلاق">✕</button><img src="${BASE}assets/app-icon-192.png" alt="" width="64" height="64"><h3>ثبّت أبلكيشن إفرست</h3>
+    ${isIOS ? `<ol><li>افتح الموقع من <b>Safari</b></li><li>اضغط زرار المشاركة <b>⬆️</b> تحت</li><li>اختار <b>«إضافة إلى الشاشة الرئيسية»</b></li><li>اضغط <b>«إضافة»</b></li></ol>`
+      : `<ol><li>افتح قايمة المتصفح <b>⋮</b> فوق</li><li>اختار <b>«تثبيت التطبيق»</b> أو <b>«إضافة إلى الشاشة الرئيسية»</b></li><li>اضغط <b>«تثبيت»</b></li></ol>`}</div>`;
+  document.body.appendChild(d); const bye = () => d.remove();
+  d.onclick = e => { if (e.target === d || e.target.closest(".inst-x")) bye() };
+}
+window.everestInstall = installApp;
 /* ---------- برنامج الداعمين ---------- */
 const REFC = Object.assign({on: true, newPct: 3}, S.referral || {});
 const phoneDigits = s => String(s || "").replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d)).replace(/[۰-۹]/g, d => "۰۱۲۳۴۵۶۷۸۹".indexOf(d)).replace(/[^\d+]/g, "");
@@ -1015,11 +1039,13 @@ if (PD && $("#pdBuy")) {
           <button type="button" class="ss-b" data-sscopy>نسخ اللينك</button>
           ${navigator.share ? '<button type="button" class="ss-b" data-ssshare>مشاركة</button>' : ""}
           <a class="ss-b" href="${BASE}assets/qr-store.png" download="QR-everest-paints.png">تحميل الـQR</a>
+          <button type="button" class="ss-b ss-app" data-install ${!isApp && (window.__evInstall || isIOS) ? "" : "hidden"}>📲 ثبّت الأبلكيشن</button>
         </div>
       </div>
     </div>`);
     const box = ft.querySelector(".share-store");
     box.querySelector("[data-sscopy]").onclick = e => copyTxt(SU, e.target);
+    box.querySelector("[data-install]").onclick = installApp;
     const sh = box.querySelector("[data-ssshare]"); if (sh) sh.onclick = () => navigator.share({title: "إفرست للدهانات والديكور", text: SM.replace(SU, ""), url: SU}).catch(() => {});
   }
   if (ft) ft.insertAdjacentHTML("beforeend", `<div class="policy-links">${[["privacy", "سياسة الخصوصية"], ["returns", "الاستبدال والاسترجاع"], ["delivery", "التوصيل"], ["terms", "الشروط والأحكام"]].map(([k, n]) => `<a href="${BASE}policies.html#${k}">${n}</a>`).join("")}</div>`);
