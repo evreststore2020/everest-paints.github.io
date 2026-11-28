@@ -251,7 +251,8 @@ function totals() {
     cnt += l.n; if (l.sum == null) unknown = true; else sub += l.sum;
     if (l.fixed) { fixedSub += l.sum; fixedN++ } else { pendN++; if (l.sum != null) pendSub += l.sum }
   });
-  const DD = DISC(), pct = DD ? DD.percent / 100 : 0, d = Math.round(sub * pct), fixedNet = fixedSub - Math.round(fixedSub * pct);
+  let DD = DISC(); if (DD && DD.min && sub < DD.min) DD = REFD;
+  const pct = DD ? DD.percent / 100 : 0, d = Math.round(sub * pct), fixedNet = fixedSub - Math.round(fixedSub * pct);
   const mode = !L.length ? "none" : !pendN ? "instant" : !fixedN ? "confirm" : "mixed";
   return {L, sub, d, tot: sub - d, unknown, cnt, fixedSub, fixedNet, fixedN, pendN, pendSub, mode};
 }
@@ -297,7 +298,7 @@ function renderCart() {
   }).join("") : `<p style="color:var(--muted);text-align:center;padding:40px 0">السلة فارغة</p>`;
   { const oc = $("#oColor"), need = T.L.some(l => l.p && l.size && String(l.size).endsWith(CSUF)); if (oc) { oc.classList.toggle("need", need); oc.placeholder = need ? "🎨 اكتب كود اللون (مثلاً 1024 أو اسمه) – مهم" : oc.dataset.ph || oc.placeholder; if (!oc.dataset.ph && !need) oc.dataset.ph = oc.placeholder } }
   $("#subtotal").textContent = fmt(T.sub);
-  { const DD = DISC(); $("#discRow").hidden = !DD; if (DD) { $("#discLabel").textContent = `${DD.label} (${num(DD.percent)}٪)`; $("#discVal").textContent = "− " + fmt(T.d) } }
+  { const D0 = DISC(), low = D0 && D0.min && T.sub < D0.min, DD = low ? REFD : D0; $("#discRow").hidden = !DD && !low; if (DD) { $("#discLabel").textContent = `${DD.label} (${num(DD.percent)}٪)`; $("#discVal").textContent = "− " + fmt(T.d) } else if (low) { $("#discLabel").textContent = `${D0.label}: بيتطبق على الطلبات فوق ${fmt(D0.min)}`; $("#discVal").textContent = "" } }
   refCheck();
   $("#total").textContent = fmt(T.tot); $("#cartCount").textContent = num(T.cnt); $("#totNote").style.display = T.unknown ? "block" : "none";
   const pb = $("#payBox"); if (pb) pb.innerHTML = payBoxHTML(T);
@@ -370,8 +371,15 @@ if ($("#items")) {
     let c = null;
     if (SB && !preview) { try { c = await SB.rpc("check_discount", {p_code: v}) } catch (e) { return toast("تعذّر التأكد من الكود، حاول تاني") } if (c && c.limited) return toast("محاولات كتير، جرّب بعد 10 دقايق") }
     else c = (DATA.discountCodes || []).find(x => x.active && x.code.toUpperCase() === v);
+    if (!c && SB && !preview) {
+      const ph = phoneDigits((($("#oPhone") || {}).value) || ((window.everestMe && everestMe()) || {}).phone || "");
+      let k = null; try { k = await SB.rpc("check_campaign", {p_code: v, p_phone: ph.length >= 10 ? ph : null}) } catch (e) { return toast("تعذّر التأكد من الكود، حاول تاني") }
+      if (k && k.limited) return toast("محاولات كتير، جرّب بعد 10 دقايق");
+      if (k && k.err) { disc = null; save(); renderCart(); return toast({inactive: "الكود ده موقوف حالياً", expired: "الكود ده انتهت صلاحيته", used: "الكود ده اتستخدم العدد المسموح بيه", first: "الكود ده لأول طلب بس", phone: "إنت استخدمت الكود ده قبل كده", type: `الكود ده مخصص لـ«${k.type || ""}» بس – اتأكد إنك مسجّل بنفس الرقم`}[k.err] || "الكود غير صالح") }
+      if (k && k.code) c = {code: k.code, percent: +k.percent, label: k.label || "خصم خاص", min: k.min != null ? +k.min : null};
+    }
     if (!c) { disc = null; save(); renderCart(); return toast("الكود غير صحيح أو غير مفعّل") }
-    disc = {code: c.code, percent: c.percent, label: c.label}; save(); renderCart(); toast("تم تطبيق الخصم ✓");
+    disc = {code: c.code, percent: c.percent, label: c.label, min: c.min || null}; save(); renderCart(); toast(disc.min ? `تم تطبيق الخصم ✓ (على الطلبات فوق ${fmt(disc.min)})` : "تم تطبيق الخصم ✓");
   };
   /* كود الترحيب بيتطبق على السلة تلقائي بعد التسجيل */
   window.everestApplyCode = code => { $("#codeIn").value = code; $("#codeBtn").click() };
