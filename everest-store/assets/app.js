@@ -1152,9 +1152,9 @@ if (SB && !preview) SB.select("site_data", "select=value&key=eq.ticker").then(r 
     modal.classList.toggle("gate", gated);
     $("#aBody").innerHTML = `
       ${gated ? `<div class="agate-brand"><img src="${BASE}assets/everest-logo-h.png" alt="" width="94" height="54" onerror="this.remove()"><div><b>إفرست للدهانات والديكور</b><small>وكيل جوتن المعتمد</small></div></div>` : ""}
+      ${!edit && WON ? `<div class="awelcome"><span class="aw-ic">🎁</span><div><b>خصم ${esc(WEL.pct)}٪ على أول طلب</b><small>سجّل في دقيقة والكود يظهرلك على طول</small></div></div>` : ""}
       <h3 id="aTitle">${edit ? "بياناتي" : gated ? "أهلاً بيك 👋 سجّل بياناتك للدخول" : "تسجيل الدخول"}</h3>
       <p class="muted">${edit ? "تقدر تعدّل بياناتك في أي وقت." : "سجّل مرة واحدة بس – ومش هتحتاج تكتب بياناتك تاني مع كل طلب."}</p>
-      ${!edit && WON ? `<div class="awelcome">🎁 سجّل دلوقتي وخد <b>خصم ${esc(WEL.pct)}٪</b> على أول طلب – الكود هيظهرلك بعد التسجيل على طول</div>` : ""}
       <form id="aForm" novalidate data-type="${esc(m.type || "")}">
         <div class="field atype"><label>إنت مين؟ <b class="req">*</b></label>
           <div class="achips big" role="radiogroup">${[...CTYPES, ...(edit ? [] : ["زائر"])].map(x => `<label class="${x === "زائر" ? "visitor-chip" : ""}"><input type="radio" name="type" value="${esc(x)}" ${m.type === x ? "checked" : ""}><span>${x === "زائر" ? "👀 زائر" : esc(x)}</span></label>`).join("")}</div></div>
